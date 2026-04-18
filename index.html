@@ -2,44 +2,84 @@
 <html lang="zh">
 <head>
 <meta charset="UTF-8">
-<title>交互式课件</title>
+<title>物理交互课件平台</title>
 
 <style>
 body {
-    font-family: sans-serif;
+    margin: 0;
+    font-family: "Segoe UI", sans-serif;
     background: linear-gradient(135deg,#667eea,#764ba2);
     color: white;
+}
+
+header {
     text-align: center;
+    padding: 30px;
+    font-size: 28px;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px,1fr));
+    gap: 20px;
+    padding: 20px;
 }
 
 .card {
     background: white;
     color: black;
-    margin: 40px auto;
-    padding: 30px;
+    padding: 20px;
     border-radius: 20px;
-    width: 300px;
     cursor: pointer;
     transition: 0.3s;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
 }
 
 .card:hover {
-    transform: scale(1.05);
+    transform: translateY(-5px) scale(1.03);
+}
+
+.title {
+    font-size: 20px;
+    margin-bottom: 10px;
+}
+
+.desc {
+    font-size: 14px;
+    color: #666;
 }
 </style>
 </head>
 
 <body>
 
-<h1>📚 物理课件</h1>
+<header>📚 我的物理课件平台</header>
 
-<div class="card" onclick="go()">
-    🔍 光线作图课件
+<div class="grid">
+
+<!-- 卡片1 -->
+<div class="card" onclick="go('光线作图.html')">
+    <div class="title">🔍 光线作图</div>
+    <div class="desc">光线作图演示</div>
+</div>
+
+<!-- 卡片2（先放占位，之后你会用到） -->
+<div class="card" onclick="alert('还没上传')">
+    <div class="title">💡 光的反射</div>
+    <div class="desc">敬请期待</div>
+</div>
+
+<!-- 卡片3 -->
+<div class="card" onclick="alert('还没上传')">
+    <div class="title">🌈 折射现象</div>
+    <div class="desc">敬请期待</div>
+</div>
+
 </div>
 
 <script>
-function go(){
-    window.location.href = "光线作图.html";
+function go(url){
+    window.location.href = url;
 }
 </script>
 
