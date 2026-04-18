@@ -1,0 +1,2704 @@
+
+                        <!DOCTYPE html>
+                        <html lang="en">
+                        <head>
+                            <meta charset="UTF-8">
+                            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+							<style>
+								body {
+									background-color: white; /* Ensure the iframe has a white background */
+								}
+
+								
+							</style>
+                        </head>
+                        <body>
+                            <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body {
+background-color: white; /* Ensure the iframe has a white background */
+}
+</style>
+</head>
+<body>
+    <!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,maximum-scale=1,minimum-scale=1">
+    <title>线光源阴影区域探索课件</title>
+    <style>
+        /* 完全禁止滚动的基础样式 */
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            position: fixed;
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #f8fafc;
+            touch-action: none;
+            -webkit-overflow-scrolling: none;
+        }
+        body {
+            display: flex;
+            flex-direction: column;
+        }
+        /* 顶部进度条 - 固定高度 */
+        .top-progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid #e5e7eb;
+            z-index: 1000;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .progress-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 0 20px;
+            width: 100%;
+            max-width: 800px;
+        }
+        .progress-step {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #e5e7eb;
+            color: #6b7280;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            flex-shrink: 0;
+        }
+        .progress-step:hover {
+            background: #d1d5db;
+            transform: scale(1.1);
+        }
+        .progress-step.current {
+            background: #3b82f6;
+            color: white;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+        .progress-step.completed {
+            background: #10b981;
+            color: white;
+        }
+        .progress-step.completed::after {
+            content: '✓';
+            position: absolute;
+            font-size: 16px;
+        }
+        .progress-step.locked {
+            background: #f3f4f6;
+            color: #9ca3af;
+            cursor: not-allowed;
+        }
+        .progress-step.locked:hover {
+            transform: none;
+            background: #f3f4f6;
+        }
+        .progress-line {
+            width: 24px;
+            height: 3px;
+            background: #e5e7eb;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+        .progress-line.completed {
+            background: #10b981;
+        }
+        .progress-title {
+            position: absolute;
+            top: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 11px;
+            color: #6b7280;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+        .progress-step:hover .progress-title {
+            opacity: 1;
+        }
+        /* 主要内容区域 - 固定布局 */
+        .wrap {
+            margin-top: 60px;
+            width: 100vw;
+            height: calc(100vh - 60px);
+            overflow: hidden;
+            position: relative;
+        }
+        .panel {
+            width: 100%;
+            height: 100%;
+            background: #fff;
+            border: none;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+        .bar {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            padding: 12px 16px;
+            font-size: 22px;
+            font-weight: 700;
+            color: #1e40af;
+            flex-shrink: 0;
+            border-bottom: 1px solid #e5e7eb;
+            background: #fff;
+        }
+        .bar h1 {
+            margin: 0;
+            font-size: inherit;
+            font-weight: inherit;
+            color: inherit;
+        }
+        .bar .sp {
+            flex: 1;
+        }
+        /* 主要布局区域 */
+        .stage-layout, .start-layout {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+            height: calc(100vh - 120px);
+        }
+        .start-layout {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 20px;
+        }
+        .start-title {
+            font-size: 36px;
+            font-weight: 800;
+            color: #1e3a8a;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+        .start-goal {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border: 3px solid #0ea5e9;
+            border-radius: 16px;
+            padding: 30px 40px;
+            margin-bottom: 35px;
+            max-width: 700px;
+            width: 90%;
+        }
+        .start-goal-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #0c4a6e;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .start-goal-content {
+            font-size: 16px;
+            color: #374151;
+            line-height: 1.5;
+            margin-bottom: 12px;
+        }
+        .start-button {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            padding: 18px 36px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+            transition: all 0.3s ease;
+            min-height: 60px;
+        }
+        .start-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+        }
+        /* 交互控制区域 */
+        .interaction-overlay {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-width: 320px;
+        }
+        .reset-button {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 16px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(245, 158, 11, 0.3);
+            transition: all 0.3s ease;
+            min-height: 40px;
+        }
+        .reset-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 3px 6px rgba(245, 158, 11, 0.4);
+        }
+        .interaction-hint {
+            background: rgba(59, 130, 246, 0.95);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            box-shadow: 0 3px 10px rgba(59, 130, 246, 0.3);
+            line-height: 1.4;
+            backdrop-filter: blur(5px);
+        }
+        .overlay-button {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 14px 20px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 3px 8px rgba(16, 185, 129, 0.3);
+            transition: all 0.3s ease;
+            display: none;
+            min-height: 50px;
+        }
+        .overlay-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+        }
+        .overlay-button.show {
+            display: block;
+            animation: slideDown 0.5s ease-out;
+        }
+        /* SVG 容器 - 完全适配 */
+        svg {
+            width: 100%;
+            height: 100%;
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            user-select: none;
+            touch-action: none;
+            display: block;
+        }
+        /* 总结页面布局 */
+        .summary-layout {
+            display: flex;
+            height: 100%;
+            gap: 20px;
+            position: relative;
+            padding: 16px;
+        }
+        .summary-svg-container {
+            flex: 1;
+            min-width: 0;
+            height: 100%;
+        }
+        .summary-content {
+            width: 360px;
+            padding: 20px;
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border: 2px solid #0ea5e9;
+            border-radius: 16px;
+            overflow-y: auto;
+            height: 100%;
+            flex-shrink: 0;
+        }
+        .summary-title {
+            font-size: 22px;
+            font-weight: 800;
+            color: #1e40af;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .summary-section {
+            margin-bottom: 20px;
+        }
+        .summary-section h3 {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1e40af;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .summary-section p {
+            font-size: 14px;
+            line-height: 1.6;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+        .key-point {
+            background: rgba(59, 130, 246, 0.1);
+            border-left: 4px solid #3b82f6;
+            padding: 12px 16px;
+            border-radius: 0 8px 8px 0;
+            margin: 12px 0;
+        }
+        .congratulations {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            padding: 16px;
+            border-radius: 12px;
+            text-align: center;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+        .congratulations h4 {
+            margin: 0 0 8px 0;
+            font-size: 18px;
+            font-weight: 700;
+        }
+        .congratulations p {
+            margin: 0;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        /* 浮动反馈效果 */
+        .floating-feedback {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            font-weight: bold;
+            z-index: 200;
+            pointer-events: none;
+            animation: feedbackPop 1.5s ease-out forwards;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            box-shadow: 0 0 30px rgba(16, 185, 129, 0.6);
+        }
+        .floating-feedback::before {
+            content: '✓';
+            animation: checkMark 0.6s ease-out 0.2s both;
+        }
+        /* 烟花效果容器 */
+        .fireworks-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1000;
+            overflow: hidden;
+        }
+        .firework {
+            position: absolute;
+            border-radius: 50%;
+            animation: fireworkExplode 2s ease-out forwards;
+        }
+        .spark {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            animation: sparkFly 1.5s ease-out forwards;
+        }
+        /* 过渡提示 */
+        .transition-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease-out;
+        }
+        .transition-message {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+            padding: 30px 40px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 500px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.5s ease-out;
+        }
+        .transition-title {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+        .transition-content {
+            font-size: 16px;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+        .transition-progress {
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+        .transition-progress-bar {
+            height: 100%;
+            background: white;
+            width: 0%;
+            animation: progressFill ease-out forwards;
+        }
+        /* 动画定义 */
+        @keyframes feedbackPop {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.3); }
+            20% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+            40% { transform: translate(-50%, -50%) scale(1); }
+            90% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+        }
+        @keyframes checkMark {
+            0% { transform: scale(0) rotate(-45deg); opacity: 0; }
+            50% { transform: scale(1.3) rotate(-45deg); opacity: 1; }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+        @keyframes fireworkExplode {
+            0% { transform: scale(0); opacity: 1; }
+            50% { transform: scale(1.5); opacity: 0.8; }
+            100% { transform: scale(3); opacity: 0; }
+        }
+        @keyframes sparkFly {
+            0% { transform: translate(0, 0) scale(1); opacity: 1; }
+            100% { transform: translate(var(--spark-x), var(--spark-y)) scale(0); opacity: 0; }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes progressFill {
+            to { width: 100%; }
+        }
+        @keyframes guideDash {
+            0% { stroke-dashoffset: 0; }
+            100% { stroke-dashoffset: 24; }
+        }
+        @keyframes hintPulse {
+            0%, 100% { opacity: 0.9; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.05); }
+        }
+        /* SVG样式 */
+        .src { stroke: #ffd700; stroke-width: 10; filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.8)); }
+        .lampshade { fill: #ddd; stroke: #333; stroke-width: 2; }
+        .lamp { fill: #ffd700; stroke: #333; stroke-width: 2; }
+        .obs { fill: #999; stroke: #333; stroke-width: 3; }
+        .pt { fill: #fff; stroke: #333; stroke-width: 3; }
+        .ray { stroke: #9c27b0; stroke-width: 4; fill: none; }
+        .ray.other { stroke: #9c27b0; stroke-width: 3; fill: none; }
+        .reverseRay { stroke: #9c27b0; stroke-width: 4; fill: none; }
+        .reverseRay.blocked { stroke: #9c27b0; stroke-width: 3; stroke-dasharray: 10,5; fill: none; }
+        .keyBoundaryRay { stroke: #ff0000; stroke-width: 5; fill: none; filter: drop-shadow(0 0 6px rgba(255, 0, 0, 0.6)); }
+        .boundaryRay { stroke: #ff4444; stroke-width: 5; fill: none; filter: drop-shadow(0 0 8px rgba(255, 68, 68, 0.6)); }
+        .keyRay { stroke: #ff8500; stroke-width: 5; fill: none; filter: drop-shadow(0 0 6px rgba(255, 133, 0, 0.6)); }
+        .multiRay-0 { stroke: #ff4444; stroke-width: 4; fill: none; }
+        .multiRay-1 { stroke: #00bcd4; stroke-width: 4; fill: none; }
+        .multiRay-2 { stroke: #4caf50; stroke-width: 4; fill: none; }
+        .multiRay-3 { stroke: #ff9800; stroke-width: 4; fill: none; }
+        .multiRay-4 { stroke: #9c27b0; stroke-width: 4; fill: none; }
+        .background-faded .multiRay-0 { stroke: #ccc !important; stroke-width: 3 !important; opacity: 0.4 !important; }
+        .background-faded .multiRay-1 { stroke: #ccc !important; stroke-width: 3 !important; opacity: 0.4 !important; }
+        .background-faded .multiRay-2 { stroke: #ccc !important; stroke-width: 3 !important; opacity: 0.4 !important; }
+        .background-faded .multiRay-3 { stroke: #ccc !important; stroke-width: 3 !important; opacity: 0.4 !important; }
+        .background-faded .multiRay-4 { stroke: #ccc !important; stroke-width: 3 !important; opacity: 0.4 !important; }
+        .background-faded .arrow-red { fill: #ccc !important; opacity: 0.4 !important; }
+        .background-faded .arrow-cyan { fill: #ccc !important; opacity: 0.4 !important; }
+        .background-faded .arrow-green { fill: #ccc !important; opacity: 0.4 !important; }
+        .background-faded .arrow-orange { fill: #ccc !important; opacity: 0.4 !important; }
+        .background-faded .arrow-purple { fill: #ccc !important; opacity: 0.4 !important; }
+        .background-faded .multiPoint-0 { fill: #ccc !important; stroke: #999 !important; opacity: 0.4 !important; }
+        .background-faded .multiPoint-1 { fill: #ccc !important; stroke: #999 !important; opacity: 0.4 !important; }
+        .background-faded .multiPoint-2 { fill: #ccc !important; stroke: #999 !important; opacity: 0.4 !important; }
+        .background-faded .multiPoint-3 { fill: #ccc !important; stroke: #999 !important; opacity: 0.4 !important; }
+        .background-faded .multiPoint-4 { fill: #ccc !important; stroke: #999 !important; opacity: 0.4 !important; }
+        .zone { pointer-events: none; stroke: none; }
+        .screenEdge { stroke: #333; stroke-width: 6; }
+        .pointLight { fill: #ffd700; stroke: #333; stroke-width: 3; }
+        .pointRay { stroke: #2196f3; stroke-width: 4; fill: none; }
+        .arrow { fill: #ff6b00; }
+        .arrow-gray { fill: #666; }
+        .arrow-orange { fill: #ff8500; }
+        .arrow-blue { fill: #2196f3; }
+        .arrow-red { fill: #ff0000; }
+        .arrow-purple { fill: #9c27b0; }
+        .arrow-cyan { fill: #00bcd4; }
+        .arrow-green { fill: #4caf50; }
+        .point-label { fill: #333; font-family: system-ui; font-size: 18px; font-weight: 700; text-anchor: middle; dominant-baseline: middle; }
+        .region-label { fill: #333; font-family: system-ui; font-size: 16px; font-weight: 600; text-anchor: start; dominant-baseline: middle; }
+        .bright-zone { fill: #ffeb3b; opacity: 0.7; }
+        .mid-zone { fill: #ddd; opacity: 0.7; }
+        .dark-zone { fill: #1a1a1a; opacity: 0.7; stroke: #000; stroke-width: 4; stroke-dasharray: 8,4; filter: drop-shadow(0 0 6px rgba(0, 0, 0, 0.8)); }
+        .dark-zone-boundary { stroke: #ff0000; stroke-width: 4; fill: none; stroke-dasharray: 10,5; filter: drop-shadow(0 0 6px rgba(255, 0, 0, 0.6)); }
+        .fixed-dark-zone { fill: #ff6b6b; opacity: 0.5; stroke: #ff4757; stroke-width: 3; stroke-dasharray: 6,3; }
+        .user-drawn-region { fill: #4ade80; fill-opacity: 0.5; stroke: #16a34a; stroke-width: 4; stroke-dasharray: 10,5; }
+        .multiPoint-0 { fill: #ff4444; stroke: #333; stroke-width: 3; }
+        .multiPoint-1 { fill: #00bcd4; stroke: #333; stroke-width: 3; }
+        .multiPoint-2 { fill: #4caf50; stroke: #333; stroke-width: 3; }
+        .multiPoint-3 { fill: #ff9800; stroke: #333; stroke-width: 3; }
+        .multiPoint-4 { fill: #9c27b0; stroke: #333; stroke-width: 3; }
+        .guide-hand { fill: #ffd700; stroke: #ffb300; stroke-width: 3; opacity: 0.9; }
+        .guide-path { stroke: #3b82f6; stroke-width: 4; stroke-dasharray: 8,4; fill: none; opacity: 0.8; animation: guideDash 4s linear infinite; }
+        .draggable-light { fill: #ffd700; stroke: #ffb300; stroke-width: 5; cursor: move; filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.9)); }
+        .draggable-light:hover { stroke-width: 6; filter: drop-shadow(0 0 20px rgba(255, 215, 0, 1)); }
+        .guide-animation-text { position: fixed; background: rgba(59, 130, 246, 0.95); color: white; padding: 10px 16px; border-radius: 10px; font-size: 15px; font-weight: 600; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4); z-index: 10; pointer-events: none; white-space: nowrap; }
+        .drag-text-hint { position: absolute; background: rgba(59, 130, 246, 0.95); color: white; padding: 10px 16px; border-radius: 10px; font-size: 15px; font-weight: 600; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4); z-index: 10; animation: hintPulse 2s ease-in-out infinite; pointer-events: none; white-space: nowrap; }
+        .snap-guide { stroke: #ffd700; stroke-width: 3; stroke-dasharray: 6,3; fill: none; opacity: 0.8; pointer-events: none; }
+        .snap-target { fill: #ffd700; stroke: #ffb300; stroke-width: 3; opacity: 0.8; pointer-events: none; }
+        /* 平板优化 - 768px到1200px */
+        @media (min-width: 768px) and (max-width: 1200px) {
+            .start-title { font-size: 42px; }
+            .start-goal { padding: 35px 45px; max-width: 800px; }
+            .start-goal-title { font-size: 22px; }
+            .start-goal-content { font-size: 18px; }
+            .start-button { padding: 20px 40px; font-size: 20px; min-height: 64px; }
+            .bar { font-size: 26px; padding: 16px 20px; }
+            .interaction-hint { font-size: 16px; padding: 14px 18px; }
+            .overlay-button { font-size: 16px; padding: 16px 24px; min-height: 54px; }
+            .reset-button { font-size: 14px; padding: 12px 18px; min-height: 44px; }
+            .summary-content { width: 400px; padding: 24px; }
+            .summary-title { font-size: 24px; }
+            .summary-section h3 { font-size: 20px; }
+            .summary-section p { font-size: 15px; }
+        }
+        /* 手机端优化 */
+        @media (max-width: 767px) {
+            .top-progress { height: 50px; }
+            .wrap { margin-top: 50px; height: calc(100vh - 50px); }
+            .progress-step { width: 32px; height: 32px; font-size: 12px; }
+            .progress-line { width: 16px; display: none; }
+            .progress-container { gap: 6px; flex-wrap: wrap; }
+            .bar { font-size: 18px; padding: 12px 16px; }
+            .start-title { font-size: 28px; }
+            .start-goal { padding: 25px 30px; }
+            .start-goal-title { font-size: 18px; }
+            .start-goal-content { font-size: 15px; }
+            .start-button { font-size: 16px; padding: 16px 32px; min-height: 56px; }
+            .summary-layout { flex-direction: column; padding: 12px; }
+            .summary-content { width: 100%; height: 200px; order: 2; }
+            .summary-svg-container { height: calc(100% - 220px); order: 1; min-height: 300px; }
+            .interaction-hint { font-size: 13px; padding: 10px 14px; }
+            .overlay-button { font-size: 13px; padding: 12px 18px; min-height: 46px; }
+            .reset-button { font-size: 11px; padding: 8px 12px; min-height: 36px; }
+        }
+        /* 确保没有任何滚动 */
+        .panel * {
+            touch-action: manipulation;
+        }
+        button {
+            padding: 8px 16px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            background: #fff;
+            cursor: pointer;
+            font-size: 14px;
+            min-height: 44px;
+            touch-action: manipulation;
+        }
+        button:hover {
+            background: #f8fafc;
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <!-- 顶部进度条 -->
+    <div class="top-progress">
+        <div class="progress-container">
+            <div class="progress-step current" data-step="0">
+                🏠
+                <div class="progress-title">开始</div>
+            </div>
+            <div class="progress-line"></div>
+            <div class="progress-step locked" data-step="1">
+                1
+                <div class="progress-title">点光源复习</div>
+            </div>
+            <div class="progress-line"></div>
+            <div class="progress-step locked" data-step="2">
+                2
+                <div class="progress-title">线光源挑战</div>
+            </div>
+            <div class="progress-line"></div>
+            <div class="progress-step locked" data-step="3">
+                3
+                <div class="progress-title">多点分析验证</div>
+            </div>
+            <div class="progress-line"></div>
+            <div class="progress-step locked" data-step="4">
+                4
+                <div class="progress-title">关键光线</div>
+            </div>
+            <div class="progress-line"></div>
+            <div class="progress-step locked" data-step="5">
+                5
+                <div class="progress-title">总结通关</div>
+            </div>
+        </div>
+    </div>
+    <div class="wrap">
+        <!-- 开始界面 -->
+        <div id="interface0" class="panel">
+            <div class="start-layout">
+                <div class="start-title">🔍 找到最暗的区域</div>
+                <div class="start-goal">
+                    <div class="start-goal-title">
+                        <span>🎯</span>
+                        <span>学习目标</span>
+                    </div>
+                    <div class="start-goal-content">
+                        <strong>从点光源到线光源，学会如何找到障碍物后方最暗的区域</strong>
+                    </div>
+                </div>
+                <button class="start-button" id="startBtn">
+                    🚀 要有光！
+                </button>
+            </div>
+        </div>
+        <!-- 界面一：点光源复习 -->
+        <div id="interface1" class="panel" style="display:none;">
+            <div class="bar">
+                <h1>📚 复习：画线找出点光源的最暗区域</h1>
+                <span class="sp"></span>
+            </div>
+            <div class="stage-layout">
+                <div class="interaction-overlay">
+                    <button class="reset-button" onclick="interface1.reset()">🔄 重置</button>
+                    <div class="interaction-hint" id="interactionHint1">从点光源P拖拽画线</div>
+                    <button class="overlay-button" id="overlayNextBtn1">
+                        线光源挑战 →
+                    </button>
+                </div>
+                <svg id="board1" viewBox="0 0 1200 700">
+                    <defs id="svgDefs1"></defs>
+                    <g id="static1"></g>
+                    <g id="shade1"></g>
+                    <g id="rays1"></g>
+                    <g id="temp1"></g>
+                    <g id="marks1"></g>
+                    <g id="regions1"></g>
+                    <g id="animations1"></g>
+                </svg>
+            </div>
+        </div>
+        <!-- 界面二：线光源挑战 -->
+        <div id="interface2" class="panel" style="display:none;">
+            <div class="bar">
+                <h1>🎯 挑战：我要直接通关</h1>
+                <span class="sp"></span>
+            </div>
+            <div class="stage-layout">
+                <div class="interaction-overlay">
+                    <button class="reset-button" onclick="interface2.reset()">🔄 重置</button>
+                    <div class="interaction-hint" id="interactionHint2">画出四条关键光线直接通关</div>
+                    <button class="overlay-button" id="overlaySuccessBtn2">
+                        查看总结 →
+                    </button>
+                </div>
+                <svg id="board2" viewBox="0 0 1200 700">
+                    <defs id="svgDefs2"></defs>
+                    <g id="static2"></g>
+                    <g id="shade2"></g>
+                    <g id="rays2"></g>
+                    <g id="temp2"></g>
+                    <g id="marks2"></g>
+                    <g id="animations2"></g>
+                </svg>
+            </div>
+        </div>
+        <!-- 界面三：多点分析+描绘区域+动态验证 -->
+        <div id="interface3" class="panel" style="display:none;">
+            <div class="bar">
+                <h1 id="interface3Title">🔬 探索：从点光源到线光源，找出最暗区域</h1>
+                <span class="sp"></span>
+            </div>
+            <div class="stage-layout">
+                <div class="interaction-overlay">
+                    <button class="reset-button" onclick="interface3.reset()">🔄 重置</button>
+                    <div class="interaction-hint" id="interactionHint3">从红色点光源拖拽到C点或D点</div>
+                    <button class="overlay-button" id="overlayContinueBtn3">
+                        独立画出关键光线 →
+                    </button>
+                </div>
+                <svg id="board3" viewBox="0 0 1200 700">
+                    <defs id="svgDefs3"></defs>
+                    <g id="static3"></g>
+                    <g id="shade3"></g>
+                    <g id="rays3"></g>
+                    <g id="temp3"></g>
+                    <g id="marks3"></g>
+                    <g id="animation3"></g>
+                    <g id="highlight3"></g>
+                    <g id="animations3"></g>
+                    <g id="snapGuides3"></g>
+                </svg>
+            </div>
+        </div>
+        <!-- 界面四：关键光线绘制 -->
+        <div id="interface4" class="panel" style="display:none;">
+            <div class="bar">
+                <h1>✏️ 绘制：画出四条可以确定最暗区域范围的关键光线</h1>
+                <span class="sp"></span>
+            </div>
+            <div class="stage-layout">
+                <div class="interaction-overlay">
+                    <button class="reset-button" onclick="interface4.reset()">🔄 重置</button>
+                    <div class="interaction-hint" id="interactionHint4">画出四条关键光线</div>
+                    <button class="overlay-button" id="overlayContinueBtn4">
+                        查看总结 →
+                    </button>
+                </div>
+                <svg id="board4" viewBox="0 0 1200 700">
+                    <defs id="svgDefs4"></defs>
+                    <g id="static4"></g>
+                    <g id="shade4"></g>
+                    <g id="rays4"></g>
+                    <g id="temp4"></g>
+                    <g id="marks4"></g>
+                    <g id="animations4"></g>
+                </svg>
+            </div>
+        </div>
+        <!-- 界面五：总结通关 -->
+        <div id="interface5" class="panel" style="display:none;">
+            <div class="bar">
+                <h1>🎉 总结：线光源最暗区域的确定方法</h1>
+                <span class="sp"></span>
+            </div>
+            <div class="summary-layout">
+                <div class="summary-svg-container">
+                    <svg id="board5" viewBox="0 0 1200 700">
+                        <defs id="svgDefs5"></defs>
+                        <g id="static5"></g>
+                        <g id="shade5"></g>
+                        <g id="rays5"></g>
+                        <g id="summary5"></g>
+                    </svg>
+                </div>
+                <div class="summary-content">
+                    <div class="congratulations">
+                        <h4>🎉 恭喜完成学习！</h4>
+                        <p>你已经掌握了线光源最暗区域的确定方法</p>
+                    </div>
+                    <div class="summary-title">📚 知识总结</div>
+                    <div class="summary-section">
+                        <h3>🎯 找出线光源最暗区域的方法</h3>
+                        <p><strong>1. 找两个端点：</strong>选择线光源的两个端点</p>
+                        <p><strong>2. 画两个点光源：</strong>在两个端点分别画点光源光线</p>
+                        <p><strong>3. 确定边界：</strong>两个点光源的光无法到达的区域就是最暗区域</p>
+                        <div class="key-point">
+                            关键光线：两个点光源发出的四条光线
+                        </div>
+                    </div>
+                    <button class="overlay-button show" id="overlayRestartBtn">
+                        重新学习 →
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- 烟花容器 -->
+    <div id="fireworksContainer" class="fireworks-container" style="display: none;"></div>
+    <script>
+        // 配置类 - 延长并左移光屏EF
+        class Config {
+            static SVGNS = "http://www.w3.org/2000/svg";
+            static POINTS = {
+                A: {x: 150, y: 300},
+                B: {x: 150, y: 400},
+                C: {x: 450, y: 250},
+                D: {x: 450, y: 480},
+                E: {x: 750, y: -100},
+                F: {x: 750, y: 750}
+            };
+            static SCREEN_X = 750;
+            static OBSTACLE_WIDTH = 60;
+            static SNAP_DISTANCE = 50;
+            static isPad() {
+                return window.innerWidth >= 768 && window.innerWidth <= 1400;
+            }
+            static getTouchTolerance() {
+                return this.isPad() ? 50 : 30;
+            }
+        }
+        // 烟花特效管理器
+        class FireworksManager {
+            static show() {
+                const container = document.getElementById('fireworksContainer');
+                container.style.display = 'block';
+                for (let i = 0; i < 8; i++) {
+                    setTimeout(() => {
+                        this.createFirework();
+                    }, i * 300);
+                }
+                setTimeout(() => {
+                    container.style.display = 'none';
+                    container.innerHTML = '';
+                }, 10000);
+            }
+            static createFirework() {
+                const container = document.getElementById('fireworksContainer');
+                const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24', '#f0932b', '#eb4d4b', '#6c5ce7', '#a29bfe'];
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                const x = Math.random() * window.innerWidth;
+                const y = Math.random() * (window.innerHeight * 0.6) + window.innerHeight * 0.1;
+                const firework = document.createElement('div');
+                firework.className = 'firework';
+                firework.style.left = x + 'px';
+                firework.style.top = y + 'px';
+                firework.style.backgroundColor = color;
+                firework.style.width = '20px';
+                firework.style.height = '20px';
+                container.appendChild(firework);
+                for (let i = 0; i < 12; i++) {
+                    setTimeout(() => {
+                        this.createSpark(x, y, color);
+                    }, Math.random() * 100);
+                }
+                setTimeout(() => {
+                    if (firework.parentNode) {
+                        firework.remove();
+                    }
+                }, 2000);
+            }
+            static createSpark(x, y, color) {
+                const container = document.getElementById('fireworksContainer');
+                const spark = document.createElement('div');
+                spark.className = 'spark';
+                spark.style.left = x + 'px';
+                spark.style.top = y + 'px';
+                spark.style.backgroundColor = color;
+                const angle = Math.random() * Math.PI * 2;
+                const distance = Math.random() * 100 + 50;
+                const sparkX = Math.cos(angle) * distance;
+                const sparkY = Math.sin(angle) * distance;
+                spark.style.setProperty('--spark-x', sparkX + 'px');
+                spark.style.setProperty('--spark-y', sparkY + 'px');
+                container.appendChild(spark);
+                setTimeout(() => {
+                    if (spark.parentNode) {
+                        spark.remove();
+                    }
+                }, 1500);
+            }
+        }
+        // 浮动成功反馈管理器
+        class FloatingFeedback {
+            static show() {
+                const existing = document.querySelector('.floating-feedback');
+                if (existing) {
+                    existing.remove();
+                }
+                const activeInterface = document.querySelector('.panel:not([style*="display:none"]):not([style*="display: none"])');
+                const stageLayout = activeInterface ? activeInterface.querySelector('.stage-layout, .start-layout') : null;
+                if (!stageLayout) return;
+                const feedbackEl = document.createElement('div');
+                feedbackEl.className = 'floating-feedback';
+                stageLayout.appendChild(feedbackEl);
+                setTimeout(() => {
+                    if (feedbackEl.parentNode) {
+                        feedbackEl.remove();
+                    }
+                }, 1500);
+            }
+            static success() {
+                this.show();
+            }
+        }
+        // SVG工具类
+        class SVGUtils {
+            static createElement(tag, attrs = {}, parent = null) {
+                const el = document.createElementNS(Config.SVGNS, tag);
+                Object.entries(attrs).forEach(([key, value]) => {
+                    el.setAttribute(key, value);
+                });
+                if (parent) parent.appendChild(el);
+                return el;
+            }
+            static line(parent, p1, p2, className = '') {
+                return this.createElement('line', {
+                    x1: p1.x, y1: p1.y,
+                    x2: p2.x, y2: p2.y,
+                    class: className
+                }, parent);
+            }
+            static circle(parent, cx, cy, r, className = '') {
+                return this.createElement('circle', {
+                    cx, cy, r, class: className
+                }, parent);
+            }
+            static rect(parent, x, y, width, height, className = '') {
+                return this.createElement('rect', {
+                    x, y, width, height, class: className
+                }, parent);
+            }
+            static text(parent, content, x, y, className = '') {
+                const el = this.createElement('text', {x, y, class: className}, parent);
+                el.textContent = content;
+                return el;
+            }
+            static group(parent, className = '') {
+                return this.createElement('g', {class: className}, parent);
+            }
+            static polygon(parent, points, className = '') {
+                const pointsStr = points.map(p => `${p.x},${p.y}`).join(' ');
+                return this.createElement('polygon', {
+                    points: pointsStr, class: className
+                }, parent);
+            }
+            static polyline(parent, points, className = '') {
+                const pointsStr = points.map(p => `${p.x},${p.y}`).join(' ');
+                return this.createElement('polyline', {
+                    points: pointsStr, class: className
+                }, parent);
+            }
+            static rayWithArrow(parent, points, className = '', arrowClass = 'arrow') {
+                const group = this.group(parent);
+                const line = this.polyline(group, points, className);
+                if (points.length >= 2) {
+                    const lastIndex = points.length - 1;
+                    const p1 = points[lastIndex - 1];
+                    const p2 = points[lastIndex];
+                    const midPoint = {
+                        x: (p1.x + p2.x) / 2,
+                        y: (p1.y + p2.y) / 2
+                    };
+                    const angle = Math.atan2(p2.y - p1.y, p2.x - p1.x) * 180 / Math.PI;
+                    const arrowSize = Config.isPad() ? 15 : 12;
+                    const arrow = this.polygon(group, [
+                        {x: -arrowSize, y: -arrowSize/2},
+                        {x: arrowSize, y: 0},
+                        {x: -arrowSize, y: arrowSize/2}
+                    ], arrowClass);
+                    arrow.setAttribute('transform',
+                        `translate(${midPoint.x}, ${midPoint.y}) rotate(${angle})`
+                    );
+                }
+                return group;
+            }
+            static toSVGCoords(event, svg) {
+                const pt = svg.createSVGPoint();
+                if (event.touches && event.touches.length > 0) {
+                    pt.x = event.touches[0].clientX;
+                    pt.y = event.touches[0].clientY;
+                } else if (event.changedTouches && event.changedTouches.length > 0) {
+                    pt.x = event.changedTouches[0].clientX;
+                    pt.y = event.changedTouches[0].clientY;
+                } else {
+                    pt.x = event.clientX;
+                    pt.y = event.clientY;
+                }
+                return pt.matrixTransform(svg.getScreenCTM().inverse());
+            }
+            static createOperationDemo(parent, start, end, text, delay = 0, duration = 15000) {
+                setTimeout(() => {
+                    const group = this.group(parent, 'guide-animation-group');
+                    const guidePath = this.line(group, start, end, 'guide-path');
+                    const hand = this.circle(group, start.x, start.y, 10, 'guide-hand');
+                    const textEl = document.createElement('div');
+                    textEl.className = 'guide-animation-text';
+                    textEl.textContent = text;
+                    document.body.appendChild(textEl);
+                    const rect = parent.closest('svg').getBoundingClientRect();
+                    const svgViewBox = parent.closest('svg').viewBox.baseVal;
+                    const screenX = (start.x / svgViewBox.width) * rect.width + rect.left;
+                    const screenY = (start.y / svgViewBox.height) * rect.height + rect.top - 50;
+                    textEl.style.left = `${screenX}px`;
+                    textEl.style.top = `${screenY}px`;
+                    const dx = end.x - start.x;
+                    const dy = end.y - start.y;
+                    let currentTime = 0;
+                    const cycleDuration = 3500;
+                    const animateMovement = () => {
+                        if (!group.parentNode) {
+                            textEl.remove();
+                            return;
+                        }
+                        const cycleProgress = (currentTime % cycleDuration) / cycleDuration;
+                        const easeProgress = 0.5 - 0.5 * Math.cos(Math.PI * cycleProgress);
+                        const currentX = start.x + dx * easeProgress;
+                        const currentY = start.y + dy * easeProgress;
+                        hand.setAttribute('cx', currentX);
+                        hand.setAttribute('cy', currentY);
+                        currentTime += 60;
+                        if (currentTime < duration && group.parentNode) {
+                            setTimeout(animateMovement, 60);
+                        } else {
+                            group.remove();
+                            textEl.remove();
+                        }
+                    };
+                    setTimeout(animateMovement, 250);
+                }, delay);
+            }
+            static clearAnimations(parent) {
+                const elements = parent.querySelectorAll('.guide-animation-group, .guide-hand, .guide-path, .region-label[style*="fill: rgb(59, 130, 246)"]');
+                elements.forEach(el => el.remove());
+                const textElements = document.querySelectorAll('.guide-animation-text');
+                textElements.forEach(el => el.remove());
+            }
+            static updateInteractionHint(hintId, text) {
+                const hint = document.getElementById(hintId);
+                if (hint) {
+                    hint.textContent = text;
+                }
+            }
+            static showOverlayButton(buttonId) {
+                const btn = document.getElementById(buttonId);
+                if (btn) {
+                    btn.classList.add('show');
+                }
+            }
+            static hideOverlayButton(buttonId) {
+                const btn = document.getElementById(buttonId);
+                if (btn) {
+                    btn.classList.remove('show');
+                }
+            }
+        }
+        // 几何工具类
+        class GeometryUtils {
+            static distance(p1, p2) {
+                return Math.hypot(p2.x - p1.x, p2.y - p1.y);
+            }
+            static normalize(vector) {
+                const len = Math.hypot(vector.x, vector.y);
+                return len > 0 ? {x: vector.x / len, y: vector.y / len} : {x: 0, y: 0};
+            }
+            static intersectWithScreen(start, end) {
+                const screenX = Config.SCREEN_X;
+                if (Math.abs(end.x - start.x) < 1e-6) {
+                    return {x: screenX, y: start.y};
+                }
+                const t = (screenX - start.x) / (end.x - start.x);
+                const y = start.y + t * (end.y - start.y);
+                return {x: screenX, y: y};
+            }
+            static getObstacleIntersection(start, end, isKeyRay = false) {
+                if (isKeyRay) return null;
+                const obstacleRect = {
+                    x: Config.POINTS.C.x,
+                    y: Config.POINTS.C.y,
+                    width: Config.OBSTACLE_WIDTH,
+                    height: Config.POINTS.D.y - Config.POINTS.C.y
+                };
+                const edges = [
+                    [{x: obstacleRect.x, y: obstacleRect.y},
+                     {x: obstacleRect.x + obstacleRect.width, y: obstacleRect.y}],
+                    [{x: obstacleRect.x + obstacleRect.width, y: obstacleRect.y},
+                     {x: obstacleRect.x + obstacleRect.width, y: obstacleRect.y + obstacleRect.height}],
+                    [{x: obstacleRect.x + obstacleRect.width, y: obstacleRect.y + obstacleRect.height},
+                     {x: obstacleRect.x, y: obstacleRect.y + obstacleRect.height}],
+                    [{x: obstacleRect.x, y: obstacleRect.y + obstacleRect.height},
+                     {x: obstacleRect.x, y: obstacleRect.y}]
+                ];
+                let closestIntersection = null;
+                let minDistance = Infinity;
+                edges.forEach(([edgeStart, edgeEnd]) => {
+                    const intersection = this.segmentIntersection(start, end, edgeStart, edgeEnd);
+                    if (intersection) {
+                        const distance = this.distance(start, intersection);
+                        if (distance > 3 && distance < minDistance) {
+                            minDistance = distance;
+                            closestIntersection = intersection;
+                        }
+                    }
+                });
+                return closestIntersection;
+            }
+            static segmentIntersection(p1, p2, p3, p4) {
+                const denom = (p4.y - p3.y) * (p2.x - p1.x) - (p4.x - p3.x) * (p2.y - p1.y);
+                if (Math.abs(denom) < 1e-6) return null;
+                const ua = ((p4.x - p3.x) * (p1.y - p3.y) - (p4.y - p3.y) * (p1.x - p3.x)) / denom;
+                const ub = ((p2.x - p1.x) * (p1.y - p3.y) - (p2.y - p1.y) * (p1.x - p3.x)) / denom;
+                if (ua >= 0 && ua <= 1 && ub >= 0 && ub <= 1) {
+                    return {
+                        x: p1.x + ua * (p2.x - p1.x),
+                        y: p1.y + ua * (p2.y - p1.y)
+                    };
+                }
+                return null;
+            }
+            static fitLine(points) {
+                if (points.length < 2) return null;
+                let sumX = 0, sumY = 0, sumXY = 0, sumXX = 0;
+                const n = points.length;
+                points.forEach(p => {
+                    sumX += p.x;
+                    sumY += p.y;
+                    sumXY += p.x * p.y;
+                    sumXX += p.x * p.x;
+                });
+                const denominator = n * sumXX - sumX * sumX;
+                if (Math.abs(denominator) < 1e-6) return null;
+                const k = (n * sumXY - sumX * sumY) / denominator;
+                const b = (sumY - k * sumX) / n;
+                const minX = Math.min(...points.map(p => p.x));
+                const maxX = Math.max(...points.map(p => p.x));
+                return [
+                    {x: minX, y: k * minX + b},
+                    {x: maxX, y: k * maxX + b}
+                ];
+            }
+            static isPointOnLineSource(point, tolerance = 30) {
+                const lineStart = Config.POINTS.A;
+                const lineEnd = Config.POINTS.B;
+                const actualTolerance = Config.isPad() ? tolerance + 20 : tolerance;
+                if (Math.abs(point.x - lineStart.x) > actualTolerance) {
+                    return false;
+                }
+                const minY = Math.min(lineStart.y, lineEnd.y) - actualTolerance;
+                const maxY = Math.max(lineStart.y, lineEnd.y) + actualTolerance;
+                return point.y >= minY && point.y <= maxY;
+            }
+            static getProjectionOnLineSource(point) {
+                const lineStart = Config.POINTS.A;
+                const lineEnd = Config.POINTS.B;
+                const A = point.x - lineStart.x;
+                const B = point.y - lineStart.y;
+                const C = lineEnd.x - lineStart.x;
+                const D = lineEnd.y - lineStart.y;
+                const dot = A * C + B * D;
+                const lenSq = C * C + D * D;
+                if (lenSq === 0) return lineStart;
+                let param = dot / lenSq;
+                param = Math.max(0, Math.min(1, param));
+                return {
+                    x: lineStart.x + param * C,
+                    y: lineStart.y + param * D
+                };
+            }
+            static isKeyRayDirection(startPoint, endPoint, targetPoint, tolerance = 30) {
+                const rayVector = {
+                    x: endPoint.x - startPoint.x,
+                    y: endPoint.y - startPoint.y
+                };
+                const targetVector = {
+                    x: targetPoint.x - startPoint.x,
+                    y: targetPoint.y - startPoint.y
+                };
+                const dot = rayVector.x * targetVector.x + rayVector.y * targetVector.y;
+                const rayMag = Math.hypot(rayVector.x, rayVector.y);
+                const targetMag = Math.hypot(targetVector.x, targetVector.y);
+                if (rayMag === 0 || targetMag === 0) return false;
+                const cosAngle = dot / (rayMag * targetMag);
+                const angle = Math.acos(Math.max(-1, Math.min(1, cosAngle))) * 180 / Math.PI;
+                let actualTolerance;
+                if (Config.isPad()) {
+                    actualTolerance = tolerance + 15;
+                } else {
+                    actualTolerance = tolerance;
+                }
+                const distance = this.distance(startPoint, endPoint);
+                if (distance > 250) {
+                    actualTolerance *= 0.8;
+                } else if (distance < 120) {
+                    actualTolerance *= 1.3;
+                }
+                return angle <= actualTolerance;
+            }
+            static isRayCloseToTarget(startPoint, endPoint, targetPoint) {
+                const screenIntersection = this.intersectWithScreen(startPoint, endPoint);
+                if (!screenIntersection) return false;
+                const targetScreenIntersection = this.intersectWithScreen(startPoint, targetPoint);
+                if (!targetScreenIntersection) return false;
+                const screenDistance = this.distance(screenIntersection, targetScreenIntersection);
+                const maxAllowedDistance = Config.isPad() ? 60 : 40;
+                return screenDistance <= maxAllowedDistance;
+            }
+            static findSnapTarget(mousePoint, targets) {
+                for (let target of targets) {
+                    if (this.distance(mousePoint, target) <= Config.SNAP_DISTANCE) {
+                        return target;
+                    }
+                }
+                return null;
+            }
+        }
+        // 过渡提示管理器
+        class TransitionManager {
+            static showTransition(title, content, onComplete, duration = 3000) {
+                const overlay = document.createElement('div');
+                overlay.className = 'transition-overlay';
+                overlay.innerHTML = `
+                    <div class="transition-message">
+                        <div class="transition-title">${title}</div>
+                        <div class="transition-content">${content}</div>
+                        <div class="transition-progress">
+                            <div class="transition-progress-bar" style="animation-duration: ${duration}ms;"></div>
+                        </div>
+                        <div style="font-size: 16px; opacity: 0.8;">正在跳转到探索界面...</div>
+                    </div>
+                `;
+                document.body.appendChild(overlay);
+                setTimeout(() => {
+                    overlay.remove();
+                    onComplete();
+                }, duration);
+            }
+        }
+        // 界面管理器
+        class InterfaceManager {
+            constructor() {
+                this.currentInterface = 0;
+                this.interfaces = {};
+                for (let i = 0; i <= 5; i++) {
+                    this.interfaces[i] = document.getElementById(`interface${i}`);
+                }
+                this.completedSteps = new Set([0]);
+                this.allUnlocked = false;
+                this.updateProgressBar();
+            }
+            forceGoToInterface(interfaceNumber) {
+                console.log(`Force going to interface ${interfaceNumber}`);
+                if (this.interfaces[this.currentInterface]) {
+                    this.interfaces[this.currentInterface].style.display = 'none';
+                }
+                for (let i = 0; i <= interfaceNumber; i++) {
+                    this.completedSteps.add(i);
+                }
+                this.currentInterface = interfaceNumber;
+                if (this.interfaces[this.currentInterface]) {
+                    this.interfaces[this.currentInterface].style.display = 'block';
+                }
+                this.updateProgressBar();
+                this.initInterface(interfaceNumber);
+            }
+            goToInterface(interfaceNumber) {
+                console.log(`Attempting to go to interface ${interfaceNumber}`);
+                if (!this.canAccessStep(interfaceNumber)) {
+                    console.log(`Access denied to step ${interfaceNumber}`);
+                    return;
+                }
+                console.log(`Going to interface ${interfaceNumber}`);
+                if (this.interfaces[this.currentInterface]) {
+                    this.interfaces[this.currentInterface].style.display = 'none';
+                }
+                if (this.currentInterface > 0) {
+                    this.completedSteps.add(this.currentInterface);
+                }
+                if (this.completedSteps.size >= 5) {
+                    this.allUnlocked = true;
+                }
+                this.currentInterface = interfaceNumber;
+                if (this.interfaces[this.currentInterface]) {
+                    this.interfaces[this.currentInterface].style.display = 'block';
+                }
+                this.updateProgressBar();
+                this.initInterface(interfaceNumber);
+            }
+            canAccessStep(stepNumber) {
+                if (stepNumber === 0) return true;
+                if (this.allUnlocked) return true;
+                return this.completedSteps.has(stepNumber) || this.completedSteps.has(stepNumber - 1);
+            }
+            updateProgressBar() {
+                const steps = document.querySelectorAll('.progress-step');
+                const lines = document.querySelectorAll('.progress-line');
+                steps.forEach((step, index) => {
+                    step.classList.remove('current', 'completed', 'locked');
+                    if (index === this.currentInterface) {
+                        step.classList.add('current');
+                    } else if (this.completedSteps.has(index)) {
+                        step.classList.add('completed');
+                    } else if (!this.canAccessStep(index)) {
+                        step.classList.add('locked');
+                    }
+                    step.onclick = this.canAccessStep(index) ? () => this.goToInterface(index) : null;
+                });
+                lines.forEach((line, index) => {
+                    line.classList.remove('completed');
+                    if (this.completedSteps.has(index)) {
+                        line.classList.add('completed');
+                    }
+                });
+            }
+            initInterface(interfaceNumber) {
+                switch(interfaceNumber) {
+                    case 1: if (window.interface1) window.interface1.init(); break;
+                    case 2: if (window.interface2) window.interface2.init(); break;
+                    case 3: if (window.interface3) window.interface3.init(); break;
+                    case 4: if (window.interface4) window.interface4.init(); break;
+                    case 5: if (window.interface5) window.interface5.init(); break;
+                }
+            }
+        }
+        // 界面一：点光源复习
+        class Interface1 {
+            constructor() {
+                this.board = document.getElementById('board1');
+                this.groups = {
+                    static: document.getElementById('static1'),
+                    shade: document.getElementById('shade1'),
+                    rays: document.getElementById('rays1'),
+                    temp: document.getElementById('temp1'),
+                    marks: document.getElementById('marks1'),
+                    regions: document.getElementById('regions1'),
+                    animations: document.getElementById('animations1')
+                };
+                this.keyRaysDrawn = 0;
+                this.dragging = false;
+                this.startPoint = null;
+                this.rays = [];
+                this.regionDrawing = false;
+                this.regionPath = [];
+                this.pathPoints = [];
+                this.setupEventListeners();
+                this.drawStatic();
+            }
+            init() {
+                this.reset();
+                setTimeout(() => this.showAutoGuide(), 600);
+                SVGUtils.updateInteractionHint('interactionHint1', '从点光源P往光屏方向拖拽画出光线');
+            }
+            showAutoGuide() {
+                this.groups.animations.innerHTML = '';
+                const centerX = (Config.POINTS.A.x + Config.POINTS.B.x) / 2;
+                const centerY = (Config.POINTS.A.y + Config.POINTS.B.y) / 2;
+                const pointP = {x: centerX, y: centerY};
+                SVGUtils.createOperationDemo(this.groups.animations, pointP, Config.POINTS.C, '拖拽画线', 0);
+            }
+            setupEventListeners() {
+                this.board.addEventListener('pointerdown', this.onPointerDown.bind(this));
+                this.board.addEventListener('pointermove', this.onPointerMove.bind(this));
+                this.board.addEventListener('pointerup', this.onPointerUp.bind(this));
+                this.board.addEventListener('touchstart', this.onTouchStart.bind(this));
+                this.board.addEventListener('touchmove', this.onTouchMove.bind(this));
+                this.board.addEventListener('touchend', this.onTouchEnd.bind(this));
+            }
+            onTouchStart(event) {
+                event.preventDefault();
+                this.onPointerDown(event);
+            }
+            onTouchMove(event) {
+                event.preventDefault();
+                this.onPointerMove(event);
+            }
+            onTouchEnd(event) {
+                event.preventDefault();
+                this.onPointerUp(event);
+            }
+            drawStatic() {
+                this.groups.static.innerHTML = '';
+                const centerX = (Config.POINTS.A.x + Config.POINTS.B.x) / 2;
+                const centerY = (Config.POINTS.A.y + Config.POINTS.B.y) / 2;
+                SVGUtils.circle(this.groups.static, centerX, centerY, 15, 'pointLight');
+                SVGUtils.text(this.groups.static, 'P', centerX + 25, centerY - 20, 'point-label');
+                SVGUtils.rect(this.groups.static,
+                    Config.POINTS.C.x, Config.POINTS.C.y,
+                    Config.OBSTACLE_WIDTH, Config.POINTS.D.y - Config.POINTS.C.y, 'obs');
+                const pointsToShow = ['C', 'D', 'E', 'F'];
+                pointsToShow.forEach(label => {
+                    const point = Config.POINTS[label];
+                    SVGUtils.circle(this.groups.static, point.x, point.y, 8, 'pt');
+                    let labelX = point.x;
+                    let labelY = point.y;
+                    switch(label) {
+                        case 'C': labelX -= 25; labelY -= 20; break;
+                        case 'D': labelX -= 25; labelY += 25; break;
+                        case 'E': labelX += 25; labelY -= 20; break;
+                        case 'F': labelX += 25; labelY += 25; break;
+                    }
+                    SVGUtils.text(this.groups.static, label, labelX, labelY, 'point-label');
+                });
+                SVGUtils.line(this.groups.static, Config.POINTS.E, Config.POINTS.F, 'screenEdge');
+            }
+            onPointerDown(event) {
+                SVGUtils.clearAnimations(this.groups.animations);
+                const point = SVGUtils.toSVGCoords(event, this.board);
+                const centerX = (Config.POINTS.A.x + Config.POINTS.B.x) / 2;
+                const centerY = (Config.POINTS.A.y + Config.POINTS.B.y) / 2;
+                if (this.keyRaysDrawn >= 2 && Math.abs(point.x - Config.SCREEN_X) <= 80) {
+                    this.regionDrawing = true;
+                    this.regionPath = [point];
+                } else if (GeometryUtils.distance(point, {x: centerX, y: centerY}) <= Config.getTouchTolerance()) {
+                    this.dragging = true;
+                    this.startPoint = {x: centerX, y: centerY};
+                    this.pathPoints = [this.startPoint];
+                    if (event.pointerId !== undefined) {
+                        this.board.setPointerCapture(event.pointerId);
+                    }
+                }
+            }
+            onPointerMove(event) {
+                if (!this.dragging && !this.regionDrawing) return;
+                const point = SVGUtils.toSVGCoords(event, this.board);
+                if (this.dragging) {
+                    this.pathPoints.push(point);
+                    this.groups.temp.innerHTML = '';
+                    SVGUtils.line(this.groups.temp, this.startPoint, point, 'ray');
+                } else if (this.regionDrawing) {
+                    this.regionPath.push(point);
+                    this.groups.temp.innerHTML = '';
+                    if (this.regionPath.length > 1) {
+                        const pathData = `M ${this.regionPath[0].x} ${this.regionPath[0].y}` +
+                            this.regionPath.slice(1).map(p => `L ${p.x} ${p.y}`).join(' ');
+                        SVGUtils.createElement('path', {
+                            d: pathData,
+                            class: 'user-drawn-region'
+                        }, this.groups.temp);
+                    }
+                }
+            }
+            onPointerUp(event) {
+                this.groups.temp.innerHTML = '';
+                if (this.dragging) {
+                    this.dragging = false;
+                    this.pathPoints.push(SVGUtils.toSVGCoords(event, this.board));
+                    this.processKeyRay();
+                    this.pathPoints = [];
+                } else if (this.regionDrawing) {
+                    this.regionDrawing = false;
+                    this.processRegionSelection();
+                }
+            }
+            processKeyRay() {
+                const fitResult = GeometryUtils.fitLine(this.pathPoints);
+                if (!fitResult) return;
+                const fitEnd = fitResult[1];
+                const direction = GeometryUtils.normalize({
+                    x: fitEnd.x - this.startPoint.x,
+                    y: fitEnd.y - this.startPoint.y
+                });
+                const extendedEnd = {
+                    x: this.startPoint.x + direction.x * 1500,
+                    y: this.startPoint.y + direction.y * 1500
+                };
+                const isKeyRayC = GeometryUtils.isKeyRayDirection(this.startPoint, extendedEnd, Config.POINTS.C) &&
+                                 GeometryUtils.isRayCloseToTarget(this.startPoint, extendedEnd, Config.POINTS.C);
+                const isKeyRayD = GeometryUtils.isKeyRayDirection(this.startPoint, extendedEnd, Config.POINTS.D) &&
+                                 GeometryUtils.isRayCloseToTarget(this.startPoint, extendedEnd, Config.POINTS.D);
+                if (isKeyRayC || isKeyRayD) {
+                    const targetPoint = isKeyRayC ? Config.POINTS.C : Config.POINTS.D;
+                    const screenIntersection = GeometryUtils.intersectWithScreen(this.startPoint, targetPoint);
+                    let finalPoints;
+                    if (screenIntersection) {
+                        finalPoints = [this.startPoint, targetPoint, screenIntersection];
+                    } else {
+                        finalPoints = [this.startPoint, targetPoint];
+                    }
+                    const ray = SVGUtils.rayWithArrow(this.groups.rays, finalPoints, 'keyRay', 'arrow-orange');
+                    this.rays.push(ray);
+                    this.keyRaysDrawn++;
+                    if (this.keyRaysDrawn === 1) {
+                        FloatingFeedback.success();
+                    } else if (this.keyRaysDrawn >= 2) {
+                        FloatingFeedback.success();
+                        this.showRegionSelection();
+                        setTimeout(() => this.showRegionGuide(), 1200);
+                    }
+                } else {
+                    const obstacleHit = GeometryUtils.getObstacleIntersection(this.startPoint, extendedEnd, false);
+                    let finalEnd = extendedEnd;
+                    if (obstacleHit) {
+                        finalEnd = obstacleHit;
+                    } else {
+                        const screenHit = GeometryUtils.intersectWithScreen(this.startPoint, extendedEnd);
+                        if (screenHit) {
+                            finalEnd = screenHit;
+                        }
+                    }
+                    const ray = SVGUtils.rayWithArrow(this.groups.rays, [this.startPoint, finalEnd], 'ray other', 'arrow-purple');
+                    this.rays.push(ray);
+                }
+            }
+            showRegionSelection() {
+                SVGUtils.updateInteractionHint('interactionHint1', '现在在光屏上描出最暗区域');
+            }
+            showRegionGuide() {
+                this.groups.animations.innerHTML = '';
+                const screenTop = {x: Config.SCREEN_X, y: 300};
+                const screenBottom = {x: Config.SCREEN_X, y: 450};
+                SVGUtils.createOperationDemo(this.groups.animations, screenTop, screenBottom, '描出最暗区域', 0, 10000);
+                SVGUtils.updateInteractionHint('interactionHint1', '在光屏EF上拖拽描出最暗区域');
+            }
+            processRegionSelection() {
+                if (this.regionPath.length < 12) {
+                    return;
+                }
+                const minY = Math.min(...this.regionPath.map(p => p.y));
+                const maxY = Math.max(...this.regionPath.map(p => p.y));
+                const regionHeight = maxY - minY;
+                const centerX = (Config.POINTS.A.x + Config.POINTS.B.x) / 2;
+                const centerYp = (Config.POINTS.A.y + Config.POINTS.B.y) / 2;
+                const pointP = {x: centerX, y: centerYp};
+                const intersectionC = GeometryUtils.intersectWithScreen(pointP, Config.POINTS.C);
+                const intersectionD = GeometryUtils.intersectWithScreen(pointP, Config.POINTS.D);
+                if (intersectionC && intersectionD) {
+                    const correctTopY = Math.min(intersectionC.y, intersectionD.y);
+                    const correctBottomY = Math.max(intersectionC.y, intersectionD.y);
+                    const correctHeight = correctBottomY - correctTopY;
+                    const overlapTop = Math.max(minY, correctTopY);
+                    const overlapBottom = Math.min(maxY, correctBottomY);
+                    const overlapHeight = Math.max(0, overlapBottom - overlapTop);
+                    const overlapRatio = overlapHeight / correctHeight;
+                    if (overlapRatio > 0.65 && regionHeight > correctHeight * 0.45) {
+                        this.highlightCorrectRegion();
+                        this.showNextButton();
+                        FloatingFeedback.success();
+                    }
+                }
+            }
+            highlightCorrectRegion() {
+                const centerX = (Config.POINTS.A.x + Config.POINTS.B.x) / 2;
+                const centerY = (Config.POINTS.A.y + Config.POINTS.B.y) / 2;
+                const pointP = {x: centerX, y: centerY};
+                const intersectionC = GeometryUtils.intersectWithScreen(pointP, Config.POINTS.C);
+                const intersectionD = GeometryUtils.intersectWithScreen(pointP, Config.POINTS.D);
+                if (intersectionC && intersectionD) {
+                    const topY = Math.min(intersectionC.y, intersectionD.y);
+                    const bottomY = Math.max(intersectionC.y, intersectionD.y);
+                    SVGUtils.rect(this.groups.shade,
+                        Config.SCREEN_X - 30, topY, 60, bottomY - topY, 'dark-zone');
+                    SVGUtils.text(this.groups.marks, '最暗区域',
+                        Config.SCREEN_X + 40, (topY + bottomY) / 2, 'region-label');
+                }
+            }
+            showNextButton() {
+                SVGUtils.showOverlayButton('overlayNextBtn1');
+            }
+            reset() {
+                this.groups.rays.innerHTML = '';
+                this.groups.marks.innerHTML = '';
+                this.groups.shade.innerHTML = '';
+                this.groups.temp.innerHTML = '';
+                this.groups.regions.innerHTML = '';
+                this.groups.animations.innerHTML = '';
+                this.keyRaysDrawn = 0;
+                this.rays = [];
+                this.regionPath = [];
+                this.pathPoints = [];
+                SVGUtils.hideOverlayButton('overlayNextBtn1');
+                SVGUtils.updateInteractionHint('interactionHint1', '从点光源P拖拽画线');
+            }
+        }
+        // 界面二：线光源挑战
+        class Interface2 {
+            constructor() {
+                this.board = document.getElementById('board2');
+                this.groups = {
+                    static: document.getElementById('static2'),
+                    shade: document.getElementById('shade2'),
+                    rays: document.getElementById('rays2'),
+                    temp: document.getElementById('temp2'),
+                    marks: document.getElementById('marks2'),
+                    animations: document.getElementById('animations2')
+                };
+                this.keyRaysDrawn = new Set();
+                this.dragging = false;
+                this.startPoint = null;
+                this.actualStartPoint = null;
+                this.rays = [];
+                this.pathPoints = [];
+                this.errorCount = 0;
+                this.targets = {
+                    'A-C': this.getIntersectionY(Config.POINTS.A, Config.POINTS.C),
+                    'A-D': this.getIntersectionY(Config.POINTS.A, Config.POINTS.D),
+                    'B-C': this.getIntersectionY(Config.POINTS.B, Config.POINTS.C),
+                    'B-D': this.getIntersectionY(Config.POINTS.B, Config.POINTS.D)
+                };
+                this.setupEventListeners();
+                this.drawStatic();
+            }
+            init() {
+                this.reset();
+                SVGUtils.updateInteractionHint('interactionHint2', '画出四条能确定最暗区域的关键光线，即可直接通关');
+            }
+            setupEventListeners() {
+                this.board.addEventListener('pointerdown', this.onPointerDown.bind(this));
+                this.board.addEventListener('pointermove', this.onPointerMove.bind(this));
+                this.board.addEventListener('pointerup', this.onPointerUp.bind(this));
+                this.board.addEventListener('touchstart', this.onTouchStart.bind(this));
+                this.board.addEventListener('touchmove', this.onTouchMove.bind(this));
+                this.board.addEventListener('touchend', this.onTouchEnd.bind(this));
+            }
+            onTouchStart(event) {
+                event.preventDefault();
+                this.onPointerDown(event);
+            }
+            onTouchMove(event) {
+                event.preventDefault();
+                this.onPointerMove(event);
+            }
+            onTouchEnd(event) {
+                event.preventDefault();
+                this.onPointerUp(event);
+            }
+            drawStatic() {
+                this.groups.static.innerHTML = '';
+                SVGUtils.line(this.groups.static, Config.POINTS.A, Config.POINTS.B, 'src');
+                for (let i = 0; i <= 40; i++) {
+                    const ratio = i / 40;
+                    const x = Config.POINTS.A.x + (Config.POINTS.B.x - Config.POINTS.A.x) * ratio;
+                    const y = Config.POINTS.A.y + (Config.POINTS.B.y - Config.POINTS.A.y) * ratio;
+                    SVGUtils.circle(this.groups.static, x, y, 4, 'lamp');
+                }
+                SVGUtils.rect(this.groups.static,
+                    Config.POINTS.C.x, Config.POINTS.C.y,
+                    Config.OBSTACLE_WIDTH, Config.POINTS.D.y - Config.POINTS.C.y, 'obs');
+                Object.entries(Config.POINTS).forEach(([label, point]) => {
+                    SVGUtils.circle(this.groups.static, point.x, point.y, 8, 'pt');
+                    let labelX = point.x;
+                    let labelY = point.y;
+                    switch(label) {
+                        case 'A': labelX -= 25; labelY -= 20; break;
+                        case 'B': labelX -= 25; labelY += 25; break;
+                        case 'C': labelX -= 25; labelY -= 20; break;
+                        case 'D': labelX -= 25; labelY += 25; break;
+                        case 'E': labelX += 25; labelY -= 20; break;
+                        case 'F': labelX += 25; labelY += 25; break;
+                    }
+                    SVGUtils.text(this.groups.static, label, labelX, labelY, 'point-label');
+                });
+                SVGUtils.line(this.groups.static, Config.POINTS.E, Config.POINTS.F, 'screenEdge');
+            }
+            onPointerDown(event) {
+                const point = SVGUtils.toSVGCoords(event, this.board);
+                if (GeometryUtils.isPointOnLineSource(point)) {
+                    this.actualStartPoint = GeometryUtils.getProjectionOnLineSource(point);
+                    if (GeometryUtils.distance(this.actualStartPoint, Config.POINTS.A) <
+                        GeometryUtils.distance(this.actualStartPoint, Config.POINTS.B)) {
+                        this.startPoint = Config.POINTS.A;
+                    } else {
+                        this.startPoint = Config.POINTS.B;
+                    }
+                    this.dragging = true;
+                    this.pathPoints = [this.actualStartPoint];
+                    if (event.pointerId !== undefined) {
+                        this.board.setPointerCapture(event.pointerId);
+                    }
+                }
+            }
+            onPointerMove(event) {
+                if (!this.dragging) return;
+                const point = SVGUtils.toSVGCoords(event, this.board);
+                this.pathPoints.push(point);
+                this.groups.temp.innerHTML = '';
+                SVGUtils.line(this.groups.temp, this.actualStartPoint, point, 'ray');
+            }
+            onPointerUp(event) {
+                if (!this.dragging) return;
+                this.dragging = false;
+                this.groups.temp.innerHTML = '';
+                this.pathPoints.push(SVGUtils.toSVGCoords(event, this.board));
+                this.processRay();
+                this.startPoint = null;
+                this.actualStartPoint = null;
+                this.pathPoints = [];
+            }
+            processRay() {
+                const fitResult = GeometryUtils.fitLine(this.pathPoints);
+                if (!fitResult) return;
+                const fitEnd = fitResult[1];
+                const direction = GeometryUtils.normalize({
+                    x: fitEnd.x - this.actualStartPoint.x,
+                    y: fitEnd.y - this.actualStartPoint.y
+                });
+                const extendedEnd = {
+                    x: this.actualStartPoint.x + direction.x * 1500,
+                    y: this.actualStartPoint.y + direction.y * 1500
+                };
+                const isKeyRayC = GeometryUtils.isKeyRayDirection(this.actualStartPoint, extendedEnd, Config.POINTS.C) &&
+                                 GeometryUtils.isRayCloseToTarget(this.actualStartPoint, extendedEnd, Config.POINTS.C);
+                const isKeyRayD = GeometryUtils.isKeyRayDirection(this.actualStartPoint, extendedEnd, Config.POINTS.D) &&
+                                 GeometryUtils.isRayCloseToTarget(this.actualStartPoint, extendedEnd, Config.POINTS.D);
+                let keyType = null;
+                if (isKeyRayC) {
+                    keyType = this.startPoint === Config.POINTS.A ? 'A-C' : 'B-C';
+                } else if (isKeyRayD) {
+                    keyType = this.startPoint === Config.POINTS.A ? 'A-D' : 'B-D';
+                }
+                if (keyType && !this.keyRaysDrawn.has(keyType)) {
+                    const targetPoint = keyType.endsWith('C') ? Config.POINTS.C : Config.POINTS.D;
+                    const screenIntersection = {x: Config.SCREEN_X, y: this.targets[keyType]};
+                    const ray = SVGUtils.rayWithArrow(this.groups.rays,
+                        [this.startPoint, targetPoint, screenIntersection],
+                        'keyRay', 'arrow-orange');
+                    ray.dataset.key = keyType;
+                    this.rays.push(ray);
+                    this.keyRaysDrawn.add(keyType);
+                    const completed = this.keyRaysDrawn.size;
+                    if (completed < 4) {
+                        FloatingFeedback.success();
+                    } else if (completed >= 4) {
+                        this.showSuccess();
+                        FloatingFeedback.success();
+                    }
+                } else {
+                    this.errorCount++;
+                    const obstacleHit = GeometryUtils.getObstacleIntersection(this.actualStartPoint, extendedEnd, false);
+                    let finalEnd = extendedEnd;
+                    if (obstacleHit) {
+                        finalEnd = obstacleHit;
+                    } else {
+                        const screenHit = GeometryUtils.intersectWithScreen(this.actualStartPoint, extendedEnd);
+                        if (screenHit) {
+                            finalEnd = screenHit;
+                        }
+                    }
+                    const ray = SVGUtils.rayWithArrow(this.groups.rays, [this.actualStartPoint, finalEnd], 'ray other', 'arrow-purple');
+                    this.rays.push(ray);
+                    if (this.errorCount >= 4) {
+                        this.showTransitionAndGoToGuide();
+                    }
+                }
+            }
+            showTransitionAndGoToGuide() {
+                TransitionManager.showTransition(
+                    '🤔 正在进入探索界面',
+                    '看起来有些困难，让我们从点光源过渡到线光源。',
+                    () => {
+                        window.interfaceManager.forceGoToInterface(3);
+                    }
+                );
+            }
+            showSuccess() {
+                this.highlightDarkRegion();
+                this.showSuccessButton();
+            }
+            showSuccessButton() {
+                SVGUtils.showOverlayButton('overlaySuccessBtn2');
+            }
+            highlightDarkRegion() {
+                const acY = this.getIntersectionY(Config.POINTS.A, Config.POINTS.C);
+                const bdY = this.getIntersectionY(Config.POINTS.B, Config.POINTS.D);
+                const topY = Math.min(acY, bdY);
+                const bottomY = Math.max(acY, bdY);
+                SVGUtils.rect(this.groups.shade,
+                    Config.SCREEN_X - 30, topY, 60, bottomY - topY, 'dark-zone');
+                SVGUtils.text(this.groups.marks, '最暗区域',
+                    Config.SCREEN_X + 50, (topY + bottomY) / 2, 'region-label');
+            }
+            getIntersectionY(start, end) {
+                const intersection = GeometryUtils.intersectWithScreen(start, end);
+                return intersection ? intersection.y : 0;
+            }
+            reset() {
+                this.groups.rays.innerHTML = '';
+                this.groups.marks.innerHTML = '';
+                this.groups.shade.innerHTML = '';
+                this.groups.temp.innerHTML = '';
+                this.groups.animations.innerHTML = '';
+                this.keyRaysDrawn.clear();
+                this.rays = [];
+                this.errorCount = 0;
+                this.pathPoints = [];
+                this.actualStartPoint = null;
+                SVGUtils.hideOverlayButton('overlaySuccessBtn2');
+                SVGUtils.updateInteractionHint('interactionHint2', '从线光源AB拖拽画线');
+            }
+        }
+        // 界面三：多点分析+描绘区域+动态验证
+        class Interface3 {
+            constructor() {
+                this.board = document.getElementById('board3');
+                this.groups = {
+                    static: document.getElementById('static3'),
+                    shade: document.getElementById('shade3'),
+                    rays: document.getElementById('rays3'),
+                    temp: document.getElementById('temp3'),
+                    marks: document.getElementById('marks3'),
+                    animation: document.getElementById('animation3'),
+                    highlight: document.getElementById('highlight3'),
+                    animations: document.getElementById('animations3'),
+                    snapGuides: document.getElementById('snapGuides3')
+                };
+                this.multiPoints = [];
+                this.currentPointIndex = 0;
+                this.pointRaysDrawn = new Array(5).fill(0);
+                this.allRays = [];
+                this.dragging = false;
+                this.startPoint = null;
+                this.pathPoints = [];
+                this.hasUserInteracted = false;
+                this.regionPath = [];
+                this.regionDrawing = false;
+                this.hasDrawnRegion = false;
+                this.userDrawnRegionPath = null;
+                this.hasStartedRegionDrawing = false;
+                this.animationRunning = false;
+                this.animationId = null;
+                this.currentPosition = 0;
+                this.maxPosition = 80;
+                this.direction = 1;
+                this.isDraggingLight = false;
+                this.currentLightY = Config.POINTS.A.y;
+                this.dragHintElement = null;
+                this.userHasDragged = false;
+                this.currentPhase = 'multi';
+                this.setupMultiPoints();
+                this.setupEventListeners();
+                this.drawStatic();
+            }
+            init() {
+                this.reset();
+                setTimeout(() => this.showInitialGuide(), 1000);
+                SVGUtils.updateInteractionHint('interactionHint3', '从红色点光源画线');
+            }
+            setupMultiPoints() {
+                this.multiPoints = [
+                    {point: Config.POINTS.A, color: 0},
+                    {point: {x: Config.POINTS.A.x, y: Config.POINTS.A.y + 25}, color: 1},
+                    {point: {x: Config.POINTS.A.x, y: (Config.POINTS.A.y + Config.POINTS.B.y) / 2}, color: 2},
+                    {point: {x: Config.POINTS.A.x, y: Config.POINTS.B.y - 25}, color: 3},
+                    {point: Config.POINTS.B, color: 4}
+                ];
+            }
+            showInitialGuide() {
+                if (this.hasUserInteracted || this.currentPhase !== 'multi') return;
+                this.groups.animations.innerHTML = '';
+                const currentPoint = this.multiPoints[this.currentPointIndex];
+                SVGUtils.createOperationDemo(
+                    this.groups.animations,
+                    currentPoint.point,
+                    Config.POINTS.C,
+                    '从红色点光源画线',
+                    0,
+                    18000
+                );
+            }
+            showRegionGuide() {
+                if (!this.hasStartedRegionDrawing) {
+                    this.groups.animations.innerHTML = '';
+                    const screenTop = {x: Config.SCREEN_X, y: 350};
+                    const screenBottom = {x: Config.SCREEN_X, y: 500};
+                    SVGUtils.createOperationDemo(
+                        this.groups.animations,
+                        screenTop,
+                        screenBottom,
+                        '在光屏上描出最暗区域',
+                        0,
+                        15000
+                    );
+                }
+            }
+            setupEventListeners() {
+                this.board.addEventListener('pointerdown', this.onPointerDown.bind(this));
+                this.board.addEventListener('pointermove', this.onPointerMove.bind(this));
+                this.board.addEventListener('pointerup', this.onPointerUp.bind(this));
+                this.board.addEventListener('touchstart', this.onTouchStart.bind(this));
+                this.board.addEventListener('touchmove', this.onTouchMove.bind(this));
+                this.board.addEventListener('touchend', this.onTouchEnd.bind(this));
+            }
+            onTouchStart(event) {
+                event.preventDefault();
+                this.onPointerDown(event);
+            }
+            onTouchMove(event) {
+                event.preventDefault();
+                this.onPointerMove(event);
+            }
+            onTouchEnd(event) {
+                event.preventDefault();
+                this.onPointerUp(event);
+            }
+            drawStatic() {
+                this.groups.static.innerHTML = '';
+                SVGUtils.line(this.groups.static, Config.POINTS.A, Config.POINTS.B, 'src');
+                this.multiPoints.forEach((mp, index) => {
+                    SVGUtils.circle(this.groups.static, mp.point.x, mp.point.y, 12, `multiPoint-${mp.color}`);
+                });
+                SVGUtils.rect(this.groups.static,
+                    Config.POINTS.C.x, Config.POINTS.C.y,
+                    Config.OBSTACLE_WIDTH, Config.POINTS.D.y - Config.POINTS.C.y, 'obs');
+                Object.entries(Config.POINTS).forEach(([label, point]) => {
+                    SVGUtils.circle(this.groups.static, point.x, point.y, 8, 'pt');
+                    let labelX = point.x;
+                    let labelY = point.y;
+                    switch(label) {
+                        case 'A': labelX -= 25; labelY -= 20; break;
+                        case 'B': labelX -= 25; labelY += 25; break;
+                        case 'C': labelX -= 25; labelY -= 20; break;
+                        case 'D': labelX -= 25; labelY += 25; break;
+                        case 'E': labelX += 25; labelY -= 20; break;
+                        case 'F': labelX += 25; labelY += 25; break;
+                    }
+                    SVGUtils.text(this.groups.static, label, labelX, labelY, 'point-label');
+                });
+                SVGUtils.line(this.groups.static, Config.POINTS.E, Config.POINTS.F, 'screenEdge');
+            }
+            onPointerDown(event) {
+                const point = SVGUtils.toSVGCoords(event, this.board);
+                if (!this.hasUserInteracted && this.currentPhase === 'multi') {
+                    SVGUtils.clearAnimations(this.groups.animations);
+                    this.hasUserInteracted = true;
+                }
+                if (this.currentPhase === 'multi') {
+                    const currentMultiPoint = this.multiPoints[this.currentPointIndex];
+                    if (GeometryUtils.distance(point, currentMultiPoint.point) <= Config.getTouchTolerance()) {
+                        this.dragging = true;
+                        this.startPoint = currentMultiPoint.point;
+                        this.pathPoints = [this.startPoint];
+                        if (event.pointerId !== undefined) {
+                            this.board.setPointerCapture(event.pointerId);
+                        }
+                    }
+                } else if (this.currentPhase === 'region') {
+                    if (Math.abs(point.x - Config.SCREEN_X) <= 100) {
+                        if (!this.hasStartedRegionDrawing) {
+                            SVGUtils.clearAnimations(this.groups.animations);
+                            this.hasStartedRegionDrawing = true;
+                        }
+                        this.regionDrawing = true;
+                        this.regionPath = [point];
+                    }
+                } else if (this.currentPhase === 'animation') {
+                    const clickTolerance = Config.isPad() ? 50 : 40;
+                    if (GeometryUtils.distance(point, {x: Config.POINTS.A.x, y: this.currentLightY}) <= clickTolerance) {
+                        this.isDraggingLight = true;
+                        this.userHasDragged = true;
+                        this.pauseAnimation();
+                        this.hideDragHint();
+                        if (event.pointerId !== undefined) {
+                            this.board.setPointerCapture(event.pointerId);
+                        }
+                    }
+                }
+            }
+            onPointerMove(event) {
+                const point = SVGUtils.toSVGCoords(event, this.board);
+                if (this.currentPhase === 'multi' && this.dragging) {
+                    this.groups.snapGuides.innerHTML = '';
+                    const snapTargets = [Config.POINTS.C, Config.POINTS.D];
+                    const snapTarget = GeometryUtils.findSnapTarget(point, snapTargets);
+                    if (snapTarget) {
+                        SVGUtils.line(this.groups.snapGuides, this.startPoint, snapTarget, 'snap-guide');
+                        SVGUtils.circle(this.groups.snapGuides, snapTarget.x, snapTarget.y, 18, 'snap-target');
+                        this.pathPoints.push(snapTarget);
+                        this.groups.temp.innerHTML = '';
+                        const currentColor = this.multiPoints[this.currentPointIndex].color;
+                        SVGUtils.line(this.groups.temp, this.startPoint, snapTarget, `multiRay-${currentColor}`);
+                    } else {
+                        this.pathPoints.push(point);
+                        this.groups.temp.innerHTML = '';
+                        const currentColor = this.multiPoints[this.currentPointIndex].color;
+                        SVGUtils.line(this.groups.temp, this.startPoint, point, `multiRay-${currentColor}`);
+                    }
+                } else if (this.currentPhase === 'region' && this.regionDrawing) {
+                    this.regionPath.push(point);
+                    this.groups.temp.innerHTML = '';
+                    if (this.regionPath.length > 1) {
+                        const pathData = `M ${this.regionPath[0].x} ${this.regionPath[0].y}` +
+                            this.regionPath.slice(1).map(p => `L ${p.x} ${p.y}`).join(' ');
+                        SVGUtils.createElement('path', {
+                            d: pathData,
+                            class: 'user-drawn-region'
+                        }, this.groups.temp);
+                    }
+                } else if (this.currentPhase === 'animation' && this.isDraggingLight) {
+                    this.currentLightY = Math.max(Config.POINTS.A.y, Math.min(Config.POINTS.B.y, point.y));
+                    this.updateLightPosition();
+                }
+            }
+            onPointerUp(event) {
+                if (this.currentPhase === 'multi' && this.dragging) {
+                    this.dragging = false;
+                    this.groups.temp.innerHTML = '';
+                    this.groups.snapGuides.innerHTML = '';
+                    const finalPoint = SVGUtils.toSVGCoords(event, this.board);
+                    const snapTargets = [Config.POINTS.C, Config.POINTS.D];
+                    const snapTarget = GeometryUtils.findSnapTarget(finalPoint, snapTargets);
+                    if (snapTarget) {
+                        this.pathPoints.push(snapTarget);
+                    } else {
+                        this.pathPoints.push(finalPoint);
+                    }
+                    this.processMultiRay();
+                    this.pathPoints = [];
+                } else if (this.currentPhase === 'region' && this.regionDrawing) {
+                    this.regionDrawing = false;
+                    this.groups.temp.innerHTML = '';
+                    this.processRegionDrawing();
+                } else if (this.currentPhase === 'animation' && this.isDraggingLight) {
+                    this.isDraggingLight = false;
+                    setTimeout(() => {
+                        this.showContinueButton();
+                    }, 2500);
+                }
+            }
+            processMultiRay() {
+                const fitResult = GeometryUtils.fitLine(this.pathPoints);
+                if (!fitResult) return;
+                const fitEnd = fitResult[1];
+                const direction = GeometryUtils.normalize({
+                    x: fitEnd.x - this.startPoint.x,
+                    y: fitEnd.y - this.startPoint.y
+                });
+                const extendedEnd = {
+                    x: this.startPoint.x + direction.x * 1500,
+                    y: this.startPoint.y + direction.y * 1500
+                };
+                const isRayToC = GeometryUtils.isKeyRayDirection(this.startPoint, extendedEnd, Config.POINTS.C) &&
+                                GeometryUtils.isRayCloseToTarget(this.startPoint, extendedEnd, Config.POINTS.C);
+                const isRayToD = GeometryUtils.isKeyRayDirection(this.startPoint, extendedEnd, Config.POINTS.D) &&
+                                GeometryUtils.isRayCloseToTarget(this.startPoint, extendedEnd, Config.POINTS.D);
+                const currentColor = this.multiPoints[this.currentPointIndex].color;
+                let arrowClass = `arrow-red`;
+                switch(currentColor) {
+                    case 1: arrowClass = 'arrow-cyan'; break;
+                    case 2: arrowClass = 'arrow-green'; break;
+                    case 3: arrowClass = 'arrow-orange'; break;
+                    case 4: arrowClass = 'arrow-purple'; break;
+                }
+                if (isRayToC || isRayToD) {
+                    const targetPoint = isRayToC ? Config.POINTS.C : Config.POINTS.D;
+                    const screenIntersection = GeometryUtils.intersectWithScreen(this.startPoint, targetPoint);
+                    let finalPoints;
+                    if (screenIntersection) {
+                        finalPoints = [this.startPoint, targetPoint, screenIntersection];
+                    } else {
+                        finalPoints = [this.startPoint, targetPoint];
+                    }
+                    const ray = SVGUtils.rayWithArrow(this.groups.rays, finalPoints, `multiRay-${currentColor}`, arrowClass);
+                    this.allRays.push(ray);
+                    this.pointRaysDrawn[this.currentPointIndex]++;
+                    this.checkPointCompletion();
+                }
+            }
+            checkPointCompletion() {
+                const currentPointRays = this.pointRaysDrawn[this.currentPointIndex];
+                if (currentPointRays >= 2) {
+                    this.currentPointIndex++;
+                    if (this.currentPointIndex >= this.multiPoints.length) {
+                        this.startRegionPhase();
+                    } else {
+                        this.updateGuideContent();
+                        FloatingFeedback.success();
+                    }
+                }
+            }
+            startRegionPhase() {
+                this.currentPhase = 'region';
+                SVGUtils.updateInteractionHint('interactionHint3', '在光屏EF上拖拽描出最暗区域');
+                FloatingFeedback.success();
+                setTimeout(() => this.showRegionGuide(), 1200);
+            }
+            processRegionDrawing() {
+                if (this.regionPath.length < 10) {
+                    return;
+                }
+                const minY = Math.min(...this.regionPath.map(p => p.y));
+                const maxY = Math.max(...this.regionPath.map(p => p.y));
+                const regionHeight = maxY - minY;
+                const acY = this.getIntersectionY(Config.POINTS.A, Config.POINTS.C);
+                const bdY = this.getIntersectionY(Config.POINTS.B, Config.POINTS.D);
+                const correctTopY = Math.min(acY, bdY);
+                const correctBottomY = Math.max(acY, bdY);
+                const correctHeight = correctBottomY - correctTopY;
+                const overlapTop = Math.max(minY, correctTopY);
+                const overlapBottom = Math.min(maxY, correctBottomY);
+                const overlapHeight = Math.max(0, overlapBottom - overlapTop);
+                const overlapRatio = overlapHeight / correctHeight;
+                const heightRatio = regionHeight / correctHeight;
+                const isHeightGood = heightRatio >= 0.75 && heightRatio <= 1.4;
+                const isOverlapGood = overlapRatio > 0.8;
+                if (isOverlapGood && isHeightGood) {
+                    this.hasDrawnRegion = true;
+                    this.userDrawnRegionPath = [...this.regionPath];
+                    const pathData = `M ${this.regionPath[0].x} ${this.regionPath[0].y}` +
+                        this.regionPath.slice(1).map(p => `L ${p.x} ${p.y}`).join(' ');
+                    SVGUtils.createElement('path', {
+                        d: pathData,
+                        class: 'user-drawn-region'
+                    }, this.groups.marks);
+                    FloatingFeedback.success();
+                    this.startAnimationPhase();
+                }
+                this.regionPath = [];
+            }
+            startAnimationPhase() {
+                this.currentPhase = 'animation';
+                this.board.classList.add('background-faded');
+                this.clearUserDrawnRegion();
+                this.showFixedDarkZone();
+                this.showDragHint();
+                SVGUtils.updateInteractionHint('interactionHint3', '拖拽黄色光源，观察点光源最暗区域的变化');
+                setTimeout(() => {
+                    this.startAnimation();
+                }, 1200);
+            }
+            clearUserDrawnRegion() {
+                const userRegions = this.groups.marks.querySelectorAll('.user-drawn-region');
+                userRegions.forEach(region => region.remove());
+            }
+            showFixedDarkZone() {
+                const acY = this.getIntersectionY(Config.POINTS.A, Config.POINTS.C);
+                const bdY = this.getIntersectionY(Config.POINTS.B, Config.POINTS.D);
+                const topY = Math.min(acY, bdY);
+                const bottomY = Math.max(acY, bdY);
+                SVGUtils.rect(this.groups.shade,
+                    Config.SCREEN_X - 35, topY, 70, bottomY - topY, 'fixed-dark-zone');
+                SVGUtils.text(this.groups.shade, '最暗区域',
+                    Config.SCREEN_X + 50, (topY + bottomY) / 2 - 25, 'region-label');
+            }
+            showDragHint() {
+                if (this.dragHintElement) return;
+                const rightPanel = this.board.parentElement;
+                this.dragHintElement = document.createElement('div');
+                this.dragHintElement.className = 'drag-text-hint';
+                this.dragHintElement.textContent = '可拖拽验证';
+                rightPanel.appendChild(this.dragHintElement);
+                this.updateDragHintPosition();
+            }
+            updateDragHintPosition() {
+                if (!this.dragHintElement) return;
+                const rect = this.board.getBoundingClientRect();
+                const svgViewBox = this.board.viewBox.baseVal;
+                const lightScreenX = (Config.POINTS.A.x / svgViewBox.width) * rect.width;
+                const lightScreenY = (this.currentLightY / svgViewBox.height) * rect.height;
+                this.dragHintElement.style.left = `${lightScreenX + 40}px`;
+                this.dragHintElement.style.top = `${lightScreenY - 18}px`;
+            }
+            hideDragHint() {
+                if (this.dragHintElement) {
+                    this.dragHintElement.remove();
+                    this.dragHintElement = null;
+                }
+            }
+            updateLightPosition() {
+                this.groups.animation.innerHTML = '';
+                this.groups.highlight.innerHTML = '';
+                const currentPoint = {x: Config.POINTS.A.x, y: this.currentLightY};
+                SVGUtils.circle(this.groups.animation, currentPoint.x, currentPoint.y, 18, 'draggable-light');
+                const rayC = this.drawBoundaryRay(currentPoint, Config.POINTS.C);
+                const rayD = this.drawBoundaryRay(currentPoint, Config.POINTS.D);
+                if (rayC && rayD) {
+                    const topY = Math.min(rayC.y, rayD.y);
+                    const bottomY = Math.max(rayC.y, rayD.y);
+                    SVGUtils.rect(this.groups.highlight,
+                        Config.SCREEN_X - 30, topY, 60, bottomY - topY, 'dark-zone');
+                    SVGUtils.text(this.groups.highlight, '点光源最暗区域',
+                        Config.SCREEN_X + 50, (topY + bottomY) / 2 + 25, 'region-label');
+                }
+                this.updateDragHintPosition();
+            }
+            drawBoundaryRay(start, target) {
+                const intersection = GeometryUtils.intersectWithScreen(start, target);
+                if (intersection) {
+                    SVGUtils.rayWithArrow(this.groups.animation,
+                        [start, target, intersection], 'boundaryRay', 'arrow-red');
+                    return intersection;
+                }
+                return null;
+            }
+            startAnimation() {
+                if (this.userHasDragged) return;
+                if (this.animationRunning) return;
+                this.animationRunning = true;
+                this.currentPosition = 0;
+                this.direction = 1;
+                this.animate();
+            }
+            animate() {
+                if (!this.animationRunning || this.userHasDragged) return;
+                const progress = this.currentPosition / this.maxPosition;
+                this.currentLightY = Config.POINTS.A.y + (Config.POINTS.B.y - Config.POINTS.A.y) * progress;
+                this.updateLightPosition();
+                this.currentPosition += this.direction;
+                if (this.currentPosition >= this.maxPosition) {
+                    this.direction = -1;
+                } else if (this.currentPosition <= 0) {
+                    this.direction = 1;
+                }
+                if (this.animationRunning && !this.userHasDragged) {
+                    this.animationId = setTimeout(() => this.animate(), 90);
+                }
+            }
+            pauseAnimation() {
+                this.animationRunning = false;
+                if (this.animationId) {
+                    clearTimeout(this.animationId);
+                    this.animationId = null;
+                }
+            }
+            restartAnimation() {
+                this.userHasDragged = false;
+                this.pauseAnimation();
+                this.groups.animation.innerHTML = '';
+                this.groups.highlight.innerHTML = '';
+                this.currentPosition = 0;
+                this.direction = 1;
+                this.currentLightY = Config.POINTS.A.y;
+                this.hideDragHint();
+                setTimeout(() => {
+                    this.showDragHint();
+                    this.startAnimation();
+                }, 600);
+            }
+            showContinueButton() {
+                SVGUtils.showOverlayButton('overlayContinueBtn3');
+            }
+            updateGuideContent() {
+                const hintColors = ['红色', '青色', '绿色', '橙色', '紫色'];
+                SVGUtils.updateInteractionHint('interactionHint3', `从${hintColors[this.currentPointIndex]}点光源拖拽画线`);
+            }
+            getIntersectionY(start, end) {
+                const intersection = GeometryUtils.intersectWithScreen(start, end);
+                return intersection ? intersection.y : 0;
+            }
+            reset() {
+                this.currentPhase = 'multi';
+                this.currentPointIndex = 0;
+                this.pointRaysDrawn = new Array(5).fill(0);
+                this.allRays = [];
+                this.hasUserInteracted = false;
+                this.regionPath = [];
+                this.hasDrawnRegion = false;
+                this.userDrawnRegionPath = null;
+                this.hasStartedRegionDrawing = false;
+                this.pauseAnimation();
+                this.currentPosition = 0;
+                this.direction = 1;
+                this.currentLightY = Config.POINTS.A.y;
+                this.isDraggingLight = false;
+                this.userHasDragged = false;
+                this.hideDragHint();
+                this.board.classList.remove('background-faded');
+                this.groups.rays.innerHTML = '';
+                this.groups.marks.innerHTML = '';
+                this.groups.shade.innerHTML = '';
+                this.groups.temp.innerHTML = '';
+                this.groups.animation.innerHTML = '';
+                this.groups.highlight.innerHTML = '';
+                this.groups.animations.innerHTML = '';
+                this.groups.snapGuides.innerHTML = '';
+                this.drawStatic();
+                SVGUtils.hideOverlayButton('overlayContinueBtn3');
+                this.updateGuideContent();
+                SVGUtils.updateInteractionHint('interactionHint3', '从红色点光源画线');
+            }
+        }
+        // 界面四：关键光线绘制
+        class Interface4 {
+            constructor() {
+                this.board = document.getElementById('board4');
+                this.groups = {
+                    static: document.getElementById('static4'),
+                    shade: document.getElementById('shade4'),
+                    rays: document.getElementById('rays4'),
+                    temp: document.getElementById('temp4'),
+                    marks: document.getElementById('marks4'),
+                    animations: document.getElementById('animations4')
+                };
+                this.keyRaysDrawn = new Set();
+                this.dragging = false;
+                this.startPoint = null;
+                this.rays = [];
+                this.otherRays = [];
+                this.pathPoints = [];
+                this.hasUserDrawnFirstRay = false;
+                this.targets = {
+                    'A-C': this.getIntersectionY(Config.POINTS.A, Config.POINTS.C),
+                    'A-D': this.getIntersectionY(Config.POINTS.A, Config.POINTS.D),
+                    'B-C': this.getIntersectionY(Config.POINTS.B, Config.POINTS.C),
+                    'B-D': this.getIntersectionY(Config.POINTS.B, Config.POINTS.D)
+                };
+                this.setupEventListeners();
+                this.drawStatic();
+            }
+            init() {
+                this.reset();
+                setTimeout(() => this.showGuideAnimation(), 1000);
+                SVGUtils.updateInteractionHint('interactionHint4', '画出四条可以确定最暗区域范围的关键光线');
+            }
+            showGuideAnimation() {
+                if (this.hasUserDrawnFirstRay) return;
+                this.groups.animations.innerHTML = '';
+                SVGUtils.createOperationDemo(this.groups.animations, Config.POINTS.A, Config.POINTS.C, '拖拽画出关键光线', 0, 18000);
+            }
+            setupEventListeners() {
+                this.board.addEventListener('pointerdown', this.onPointerDown.bind(this));
+                this.board.addEventListener('pointermove', this.onPointerMove.bind(this));
+                this.board.addEventListener('pointerup', this.onPointerUp.bind(this));
+                this.board.addEventListener('touchstart', this.onTouchStart.bind(this));
+                this.board.addEventListener('touchmove', this.onTouchMove.bind(this));
+                this.board.addEventListener('touchend', this.onTouchEnd.bind(this));
+            }
+            onTouchStart(event) {
+                event.preventDefault();
+                this.onPointerDown(event);
+            }
+            onTouchMove(event) {
+                event.preventDefault();
+                this.onPointerMove(event);
+            }
+            onTouchEnd(event) {
+                event.preventDefault();
+                this.onPointerUp(event);
+            }
+            drawStatic() {
+                this.groups.static.innerHTML = '';
+                SVGUtils.line(this.groups.static, Config.POINTS.A, Config.POINTS.B, 'src');
+                for (let i = 0; i <= 40; i++) {
+                    const ratio = i / 40;
+                    const x = Config.POINTS.A.x + (Config.POINTS.B.x - Config.POINTS.A.x) * ratio;
+                    const y = Config.POINTS.A.y + (Config.POINTS.B.y - Config.POINTS.A.y) * ratio;
+                    SVGUtils.circle(this.groups.static, x, y, 4, 'lamp');
+                }
+                SVGUtils.rect(this.groups.static,
+                    Config.POINTS.C.x, Config.POINTS.C.y,
+                    Config.OBSTACLE_WIDTH, Config.POINTS.D.y - Config.POINTS.C.y, 'obs');
+                Object.entries(Config.POINTS).forEach(([label, point]) => {
+                    SVGUtils.circle(this.groups.static, point.x, point.y, 8, 'pt');
+                    let labelX = point.x;
+                    let labelY = point.y;
+                    switch(label) {
+                        case 'A': labelX -= 25; labelY -= 20; break;
+                        case 'B': labelX -= 25; labelY += 25; break;
+                        case 'C': labelX -= 25; labelY -= 20; break;
+                        case 'D': labelX -= 25; labelY += 25; break;
+                        case 'E': labelX += 25; labelY -= 20; break;
+                        case 'F': labelX += 25; labelY += 25; break;
+                    }
+                    SVGUtils.text(this.groups.static, label, labelX, labelY, 'point-label');
+                });
+                SVGUtils.line(this.groups.static, Config.POINTS.E, Config.POINTS.F, 'screenEdge');
+            }
+            onPointerDown(event) {
+                const point = SVGUtils.toSVGCoords(event, this.board);
+                if (!this.hasUserDrawnFirstRay) {
+                    SVGUtils.clearAnimations(this.groups.animations);
+                }
+                const tolerance = Config.getTouchTolerance();
+                if (GeometryUtils.distance(point, Config.POINTS.A) <= tolerance) {
+                    this.startPoint = Config.POINTS.A;
+                    this.dragging = true;
+                    this.pathPoints = [this.startPoint];
+                } else if (GeometryUtils.distance(point, Config.POINTS.B) <= tolerance) {
+                    this.startPoint = Config.POINTS.B;
+                    this.dragging = true;
+                    this.pathPoints = [this.startPoint];
+                }
+                if (this.dragging && event.pointerId !== undefined) {
+                    this.board.setPointerCapture(event.pointerId);
+                }
+            }
+            onPointerMove(event) {
+                if (!this.dragging) return;
+                const point = SVGUtils.toSVGCoords(event, this.board);
+                this.pathPoints.push(point);
+                this.groups.temp.innerHTML = '';
+                SVGUtils.line(this.groups.temp, this.startPoint, point, 'ray');
+            }
+            onPointerUp(event) {
+                if (!this.dragging) return;
+                this.dragging = false;
+                this.groups.temp.innerHTML = '';
+                this.pathPoints.push(SVGUtils.toSVGCoords(event, this.board));
+                this.processRay();
+                this.startPoint = null;
+                this.pathPoints = [];
+            }
+            processRay() {
+                const fitResult = GeometryUtils.fitLine(this.pathPoints);
+                if (!fitResult) return;
+                const fitEnd = fitResult[1];
+                const direction = GeometryUtils.normalize({
+                    x: fitEnd.x - this.startPoint.x,
+                    y: fitEnd.y - this.startPoint.y
+                });
+                const extendedEnd = {
+                    x: this.startPoint.x + direction.x * 1500,
+                    y: this.startPoint.y + direction.y * 1500
+                };
+                const isKeyRayC = GeometryUtils.isKeyRayDirection(this.startPoint, extendedEnd, Config.POINTS.C) &&
+                                 GeometryUtils.isRayCloseToTarget(this.startPoint, extendedEnd, Config.POINTS.C);
+                const isKeyRayD = GeometryUtils.isKeyRayDirection(this.startPoint, extendedEnd, Config.POINTS.D) &&
+                                 GeometryUtils.isRayCloseToTarget(this.startPoint, extendedEnd, Config.POINTS.D);
+                let keyType = null;
+                if (isKeyRayC) {
+                    keyType = this.startPoint === Config.POINTS.A ? 'A-C' : 'B-C';
+                } else if (isKeyRayD) {
+                    keyType = this.startPoint === Config.POINTS.A ? 'A-D' : 'B-D';
+                }
+                if (keyType && !this.keyRaysDrawn.has(keyType)) {
+                    const targetPoint = keyType.endsWith('C') ? Config.POINTS.C : Config.POINTS.D;
+                    const screenIntersection = {x: Config.SCREEN_X, y: this.targets[keyType]};
+                    const ray = SVGUtils.rayWithArrow(this.groups.rays,
+                        [this.startPoint, targetPoint, screenIntersection],
+                        'keyRay', 'arrow-orange');
+                    ray.dataset.key = keyType;
+                    this.rays.push(ray);
+                    this.keyRaysDrawn.add(keyType);
+                    if (!this.hasUserDrawnFirstRay) {
+                        this.hasUserDrawnFirstRay = true;
+                        SVGUtils.clearAnimations(this.groups.animations);
+                    }
+                    const completed = this.keyRaysDrawn.size;
+                    if (completed < 4) {
+                        FloatingFeedback.success();
+                    } else if (completed >= 4) {
+                        this.completeDrawing();
+                        FloatingFeedback.success();
+                    }
+                } else {
+                    const obstacleHit = GeometryUtils.getObstacleIntersection(this.startPoint, extendedEnd, false);
+                    let finalEnd = extendedEnd;
+                    if (obstacleHit) {
+                        finalEnd = obstacleHit;
+                    } else {
+                        const screenHit = GeometryUtils.intersectWithScreen(this.startPoint, extendedEnd);
+                        if (screenHit) {
+                            finalEnd = screenHit;
+                        }
+                    }
+                    const ray = SVGUtils.rayWithArrow(this.groups.rays, [this.startPoint, finalEnd], 'ray other', 'arrow-purple');
+                    this.otherRays.push(ray);
+                    if (!this.hasUserDrawnFirstRay) {
+                        this.hasUserDrawnFirstRay = true;
+                        SVGUtils.clearAnimations(this.groups.animations);
+                    }
+                }
+            }
+            completeDrawing() {
+                this.highlightDarkRegion();
+                this.showContinueButton();
+            }
+            showContinueButton() {
+                SVGUtils.showOverlayButton('overlayContinueBtn4');
+            }
+            highlightDarkRegion() {
+                const yValues = Object.values(this.targets).sort((a, b) => a - b);
+                const topY = yValues[1];
+                const bottomY = yValues[2];
+                SVGUtils.rect(this.groups.shade,
+                    Config.SCREEN_X - 30, topY, 60, bottomY - topY, 'dark-zone');
+                SVGUtils.text(this.groups.marks, '最暗区域',
+                    Config.SCREEN_X + 50, (topY + bottomY) / 2, 'region-label');
+            }
+            getIntersectionY(start, end) {
+                const intersection = GeometryUtils.intersectWithScreen(start, end);
+                return intersection ? intersection.y : 0;
+            }
+            reset() {
+                this.groups.rays.innerHTML = '';
+                this.groups.marks.innerHTML = '';
+                this.groups.shade.innerHTML = '';
+                this.groups.temp.innerHTML = '';
+                this.groups.animations.innerHTML = '';
+                this.keyRaysDrawn.clear();
+                this.rays = [];
+                this.otherRays = [];
+                this.pathPoints = [];
+                this.hasUserDrawnFirstRay = false;
+                SVGUtils.hideOverlayButton('overlayContinueBtn4');
+                setTimeout(() => this.showGuideAnimation(), 600);
+            }
+        }
+        // 界面五：总结通关
+        class Interface5 {
+            constructor() {
+                this.board = document.getElementById('board5');
+                this.groups = {
+                    static: document.getElementById('static5'),
+                    shade: document.getElementById('shade5'),
+                    rays: document.getElementById('rays5'),
+                    summary: document.getElementById('summary5')
+                };
+                this.drawStatic();
+            }
+            init() {
+                this.showSummary();
+                SVGUtils.updateInteractionHint('interactionHint5', '观察完整的关键光线分布');
+                setTimeout(() => {
+                    FireworksManager.show();
+                }, 800);
+            }
+            drawStatic() {
+                this.groups.static.innerHTML = '';
+                SVGUtils.line(this.groups.static, Config.POINTS.A, Config.POINTS.B, 'src');
+                for (let i = 0; i <= 40; i++) {
+                    const ratio = i / 40;
+                    const x = Config.POINTS.A.x + (Config.POINTS.B.x - Config.POINTS.A.x) * ratio;
+                    const y = Config.POINTS.A.y + (Config.POINTS.B.y - Config.POINTS.A.y) * ratio;
+                    SVGUtils.circle(this.groups.static, x, y, 4, 'lamp');
+                }
+                SVGUtils.rect(this.groups.static,
+                    Config.POINTS.C.x, Config.POINTS.C.y,
+                    Config.OBSTACLE_WIDTH, Config.POINTS.D.y - Config.POINTS.C.y, 'obs');
+                Object.entries(Config.POINTS).forEach(([label, point]) => {
+                    SVGUtils.circle(this.groups.static, point.x, point.y, 8, 'pt');
+                    let labelX = point.x;
+                    let labelY = point.y;
+                    switch(label) {
+                        case 'A': labelX -= 25; labelY -= 20; break;
+                        case 'B': labelX -= 25; labelY += 25; break;
+                        case 'C': labelX -= 25; labelY -= 20; break;
+                        case 'D': labelX -= 25; labelY += 25; break;
+                        case 'E': labelX += 25; labelY -= 20; break;
+                        case 'F': labelX += 25; labelY += 25; break;
+                    }
+                    SVGUtils.text(this.groups.static, label, labelX, labelY, 'point-label');
+                });
+                SVGUtils.line(this.groups.static, Config.POINTS.E, Config.POINTS.F, 'screenEdge');
+            }
+            showSummary() {
+                this.groups.rays.innerHTML = '';
+                this.groups.shade.innerHTML = '';
+                this.groups.summary.innerHTML = '';
+                const targets = {
+                    'A-C': this.getIntersectionY(Config.POINTS.A, Config.POINTS.C),
+                    'A-D': this.getIntersectionY(Config.POINTS.A, Config.POINTS.D),
+                    'B-C': this.getIntersectionY(Config.POINTS.B, Config.POINTS.C),
+                    'B-D': this.getIntersectionY(Config.POINTS.B, Config.POINTS.D)
+                };
+                Object.entries(targets).forEach(([key, targetY]) => {
+                    const startPoint = Config.POINTS[key.split('-')[0]];
+                    const targetPoint = Config.POINTS[key.split('-')[1]];
+                    const endPoint = {x: Config.SCREEN_X, y: targetY};
+                    SVGUtils.rayWithArrow(this.groups.rays,
+                        [startPoint, targetPoint, endPoint],
+                        'keyBoundaryRay', 'arrow-red');
+                });
+                const yValues = Object.values(targets).sort((a, b) => a - b);
+                const topY = yValues[1];
+                const bottomY = yValues[2];
+                SVGUtils.rect(this.groups.shade,
+                    Config.SCREEN_X - 30, topY, 60, bottomY - topY, 'dark-zone');
+                SVGUtils.text(this.groups.summary, '最暗区域',
+                    Config.SCREEN_X + 50, (topY + bottomY) / 2, 'region-label');
+            }
+            getIntersectionY(start, end) {
+                const intersection = GeometryUtils.intersectWithScreen(start, end);
+                return intersection ? intersection.y : 0;
+            }
+        }
+        // 全局变量
+        let interfaceManager;
+        let interface1, interface2, interface3, interface4, interface5;
+        // 主程序
+        document.addEventListener('DOMContentLoaded', () => {
+            // 禁止页面滚动和缩放
+            document.addEventListener('touchmove', function(e) {
+                e.preventDefault();
+            }, { passive: false });
+            document.addEventListener('gesturestart', function(e) {
+                e.preventDefault();
+            });
+            document.addEventListener('gesturechange', function(e) {
+                e.preventDefault();
+            });
+            document.addEventListener('gestureend', function(e) {
+                e.preventDefault();
+            });
+            // 初始化界面管理器和所有界面
+            interfaceManager = new InterfaceManager();
+            interface1 = new Interface1();
+            interface2 = new Interface2();
+            interface3 = new Interface3();
+            interface4 = new Interface4();
+            interface5 = new Interface5();
+            // 设置全局访问
+            window.interfaceManager = interfaceManager;
+            window.interface1 = interface1;
+            window.interface2 = interface2;
+            window.interface3 = interface3;
+            window.interface4 = interface4;
+            window.interface5 = interface5;
+            // 绑定按钮事件
+            const bindButton = (id, targetInterface) => {
+                const btn = document.getElementById(id);
+                if (btn) {
+                    const handler = (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log(`${id} clicked, going to interface ${targetInterface}`);
+                        interfaceManager.forceGoToInterface(targetInterface);
+                        return false;
+                    };
+                    btn.addEventListener('click', handler, true);
+                    btn.addEventListener('touchend', (e) => {
+                        e.preventDefault();
+                        handler(e);
+                    }, true);
+                    btn.onclick = handler;
+                    console.log(`Button ${id} bound successfully`);
+                } else {
+                    console.error(`Button ${id} not found`);
+                }
+            };
+            // 绑定所有按钮
+            bindButton('startBtn', 1);
+            bindButton('overlayNextBtn1', 2);
+            bindButton('overlaySuccessBtn2', 5);
+            bindButton('overlayContinueBtn3', 4);
+            bindButton('overlayContinueBtn4', 5);
+            bindButton('overlayRestartBtn', 0);
+            console.log('All interfaces initialized successfully');
+        });
+    </script>
+</body>
+</html>
+<script>
+</script>
+</body>
+</html>
+
+							<script>
+                            	
+							</script>
+                        </body>
+                        </html>
+                    
